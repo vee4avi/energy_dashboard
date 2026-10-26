@@ -1,0 +1,286 @@
+{
+  "schema": 1,
+  "report": "disaggregated",
+  "basis": "combined",
+  "report_date": "2026-10-20",
+  "prior_date": "2026-10-13",
+  "generated_at": "2026-10-23T23:20:01+00:00",
+  "model": "claude-sonnet-4-6",
+  "commentary": "# CFTC COT Analysis — Week of October 20, 2026\n\n## 🔑 Key Positioning Shifts\n\nThe headline story this week is **product divergence**. RBOB Managed Money trimmed its net long by **4,054 contracts** to **93,591** — a notable reduction despite gasoline stocks sitting 5% below the five-year average and prices above $100 crude. ULSD tells the opposite story: Managed Money added **+1,567 contracts** to net long **13,321**, a quiet but deliberate build into distillate tightness. With distillates still 9% below five-year averages, that accumulation looks fundamentally justified.\n\nOn crude, **WTI Physical Managed Money** slipped **-859 contracts** to **101,906 net long** — marginal, but worth flagging given the week's explosive price action (+4% Thursday settle). **ICE WTI** saw modest Managed Money buying (+1,170 to net **9,024**), while **Brent LD Managed Money** — at just **1,159 net long** — effectively has no speculative positioning of consequence. The near-zero Brent MM net long against $114/bbl spot is structurally anomalous and suggests the rally is being driven by **physical tightness and commercial flows**, not speculative momentum.\n\n**Other Reportables on Brent** added a significant **+4,499** to net **-27,948** — covering shorts aggressively into the move.\n\n---\n\n## ⚖️ Physical vs Financial\n\nCommercials are **hedging hard into strength** across the board. RBOB Prod/Merch net short expanded by **9,978 contracts** to **-83,675** — refiners locking in crack spreads at elevated levels, a textbook move with RBOB pinned well above seasonal norms. ULSD Prod/Merch net short narrowed slightly (+2,537 to -82,665), suggesting some easing of producer hedging pressure even as specs buy distillates.\n\nOn crude, the **WTI Physical Prod/Merch net long surged +4,226 to +368,955** — an unusually large producer long that reflects physical participants positioning for backwardation capture and pipeline/logistics hedging amid Hormuz disruption rerouting. **ICE WTI Prod/Merch** also extended net long by **+12,725 to +145,209**, reinforcing the theme: physical players are net long crude, effectively betting on continued spot premium over deferred.\n\n**Swap Dealers on ICE WTI** deepened their net short by **-7,105 to -146,077** — the dealer community is on the other side, providing the structure for backwardation trades. In WTI Physical, Swap Dealers sit at a massive **-590,241 net short** (-3,329 WoW), the structural anchor of the futures curve. This is not a distressed position — it's systematic dealer hedging of OTC exposure at multi-year high prices.\n\nThe **Brent Swap Dealer net long of +56,611** (down -1,491) reflects the opposite dynamic in the Atlantic Basin — dealers are long Brent paper as seaborne premiums inflate, consistent with the $13–14 Brent/WTI blowout.\n\n---\n\n## 🌐 Macro & Fundamentals\n\nThe 70%+ Brent rally YTD — from low-$70s to $114 — is being driven by a **perfect storm of supply destruction and demand resilience**. The US-Iran conflict and Strait of Hormuz disruptions are the critical supply shock: Persian Gulf export flows are materially impaired, OPEC+ members are struggling to sustain quotas, and covert shuttle operations are an inadequate substitute for normal volumes. OPEC+'s decision to hold November quotas flat for the second consecutive month is, in this context, largely irrelevant — the group is managing a crisis, not a market.\n\nThe EIA data reinforces the physical bull case unambiguously. Crude drew **3.1 million barrels** against a near-flat consensus, following **8.6 million barrels** the prior week — that's nearly 12 million barrels of consecutive draws. At **412.5 million barrels**, commercial crude stocks sit 3% below the five-year average and are trending sharply lower. Gasoline at **-3.0 million barrels** and 5% below average explains why refiners are scrambling to hedge RBOB — they face both margin opportunity and supply risk simultaneously.\n\nThe RBOB Managed Money **trim of -4,054** likely reflects **profit-taking after a significant run**, not a fundamental bearish view. Gasoline demand into the US winter shoulder season is seasonally softening, and specs may be rotating into ULSD, where the winter heating demand narrative is fresher. The distillate build of +1.7 million barrels is a one-week anomaly against a structural 9% deficit — specs buying ULSD on the dip (+1,567 MM net) is the correct read.\n\nThe **Brent/WTI spread at $13–14** is a direct consequence of Atlantic Basin tightness versus Cushing dynamics. The near-zero Brent MM positioning signals that the Brent rally is **not a speculative bubble** — it is a physical market clearing at a new, higher equilibrium. This makes any pullback inherently self-limiting as physical buyers will re-emerge on dips.\n\nDollar and rates context: elevated US rates have historically pressured commodity longs, but in a genuine geopolitical supply shock, rate sensitivity is subordinated to scarcity pricing. The macro headwind is real but not dominant here.\n\n---\n\n## ⚡ Risk Outlook\n\n**Near-term bias: bullish crude, selectively bullish products.**\n\nThe combination of consecutive massive crude draws, Hormuz disruption with no near-term resolution, OPEC+ holding flat, and SPR at a 44-year low (282.7 million barrels, ~40% capacity) leaves the supply-side structurally short. There is **no credible bearish catalyst** on fundamental grounds unless a Hormuz resolution emerges unexpectedly.\n\nHowever, **crowded positioning risk is building selectively**:\n\n- **RBOB MM net long at 93,591 is the most crowded position",
+  "news": "Here is your comprehensive weekly oil market briefing as of **October 23, 2026**:\n\n---\n\n## 🛢️ 1. Crude Oil Prices — Brent & WTI\n\n-  **Brent topped $114 and WTI broke above $100** on October 23, as oil prices rose more than 1% amid renewed Middle East tensions, with Brent reaching $114.47/bbl and WTI climbing to $100.84/bbl per Reuters data at 06:39 GMT. \n\n-  **Thursday's session was particularly strong**: Brent settled at $113.17 (+4%), its highest closing price since May 4, 2026, while WTI ended at $99.47/bbl after advancing 2.4%. \n\n-  **The 2026 rally has been exceptional** — Brent has risen more than 70% since the start of the year, moving from the low-$70s in early March to above $109/bbl in October.   The Brent–WTI spread has blown out to around $13–14/bbl, reflecting strong seaborne premiums and structural tightness in Atlantic Basin supplies. \n\n---\n\n## 🏭 2. OPEC+ — Production Decisions & Quotas\n\n-  **November quotas held flat**: At a virtual meeting on October 4, 2026, the seven core OPEC+ members (Saudi Arabia, Russia, Iraq, Kuwait, Kazakhstan, Algeria, and Oman) agreed to keep production levels unchanged for November. Targets remain: Saudi Arabia at 10.5 mb/d, Russia at 9.9 mb/d, and Iraq at 4.4 mb/d. \n\n-  This marks **two consecutive months of no increase**, with the group maintaining September production levels through November.   Rystad Energy's Jorge Leon noted that focus has shifted away from monthly production adjustments toward \"the much more consequential debate over 2027,\" as OPEC+ must review member production capacity to set 2027 output baselines before deciding how to unwind remaining cuts. \n\n-  **The US-Iran conflict has significantly blunted OPEC+'s market influence**, with Strait of Hormuz disruptions severely reducing exports from Persian Gulf nations, though some members have managed to sustain flows via alternative pipeline routes and covert shuttle runs. \n\n---\n\n## 📊 3. EIA Inventory Data (Week Ending Oct 16, Released Oct 21)\n\n-  **Crude drew sharply**: Commercial crude oil inventories (excluding the SPR) decreased **3.1 million barrels** to **412.5 million barrels**, sitting **3% below the five-year average**.   This compared to a consensus forecast of just -0.1 million barrels and followed the prior week's massive draw of -8.557 million barrels. \n\n-  **Gasoline also drew significantly** — down **3.0 million barrels**, now **5% below** the five-year average. Distillates bucked the trend, rising **1.7 million barrels**, though they remain **9% below** the five-year average. \n\n-  The **Strategic Petroleum Reserve (SPR) stands at just 282.7 million barrels** — its lowest level since October 1982, at roughly 40% of its 714 million-barrel capacity, down 0.3 million barrels on the week.  Total petroleum",
+  "contracts": {
+    "Brent LD (NYMEX)": {
+      "cftc_name": "BRENT LAST DAY",
+      "oi": 315417,
+      "d_oi": 11363,
+      "categories": {
+        "Prod/Merch": {
+          "long": 33035,
+          "short": 68126,
+          "net": -35091,
+          "d_long": 71,
+          "d_short": 3627,
+          "d_net": -3556
+        },
+        "Swap Dlrs": {
+          "long": 63254,
+          "short": 6643,
+          "net": 56611,
+          "d_long": 28,
+          "d_short": 1519,
+          "d_net": -1491
+        },
+        "Mgd Money": {
+          "long": 3650,
+          "short": 2491,
+          "net": 1159,
+          "d_long": 373,
+          "d_short": 641,
+          "d_net": -268
+        },
+        "Other Rpt": {
+          "long": 37139,
+          "short": 65087,
+          "net": -27948,
+          "d_long": -811,
+          "d_short": -5310,
+          "d_net": 4499
+        }
+      }
+    },
+    "WTI Fin (NYMEX)": {
+      "cftc_name": "WTI FINANCIAL CRUDE OIL",
+      "oi": 210374,
+      "d_oi": 3769,
+      "categories": {
+        "Prod/Merch": {
+          "long": 30183,
+          "short": 59542,
+          "net": -29359,
+          "d_long": 179,
+          "d_short": 830,
+          "d_net": -651
+        },
+        "Swap Dlrs": {
+          "long": 54083,
+          "short": 52114,
+          "net": 1969,
+          "d_long": -96,
+          "d_short": 2012,
+          "d_net": -2108
+        },
+        "Mgd Money": {
+          "long": 0,
+          "short": 0,
+          "net": 0,
+          "d_long": 0,
+          "d_short": 0,
+          "d_net": 0
+        },
+        "Other Rpt": {
+          "long": 69535,
+          "short": 24283,
+          "net": 45252,
+          "d_long": 3077,
+          "d_short": 935,
+          "d_net": 2142
+        }
+      }
+    },
+    "RBOB (NYMEX)": {
+      "cftc_name": "GASOLINE RBOB",
+      "oi": 338597,
+      "d_oi": -2981,
+      "categories": {
+        "Prod/Merch": {
+          "long": 85515,
+          "short": 169190,
+          "net": -83675,
+          "d_long": 4172,
+          "d_short": -5806,
+          "d_net": 9978
+        },
+        "Swap Dlrs": {
+          "long": 45434,
+          "short": 42638,
+          "net": 2796,
+          "d_long": 632,
+          "d_short": 1622,
+          "d_net": -990
+        },
+        "Mgd Money": {
+          "long": 103847,
+          "short": 10256,
+          "net": 93591,
+          "d_long": -3069,
+          "d_short": 985,
+          "d_net": -4054
+        },
+        "Other Rpt": {
+          "long": 8803,
+          "short": 32980,
+          "net": -24177,
+          "d_long": -3627,
+          "d_short": -1773,
+          "d_net": -1854
+        }
+      }
+    },
+    "ULSD (NYMEX)": {
+      "cftc_name": "NY HARBOR ULSD",
+      "oi": 278409,
+      "d_oi": 406,
+      "categories": {
+        "Prod/Merch": {
+          "long": 61923,
+          "short": 144588,
+          "net": -82665,
+          "d_long": 1049,
+          "d_short": -1488,
+          "d_net": 2537
+        },
+        "Swap Dlrs": {
+          "long": 59406,
+          "short": 7396,
+          "net": 52010,
+          "d_long": 427,
+          "d_short": 109,
+          "d_net": 318
+        },
+        "Mgd Money": {
+          "long": 32739,
+          "short": 19418,
+          "net": 13321,
+          "d_long": 33,
+          "d_short": -1534,
+          "d_net": 1567
+        },
+        "Other Rpt": {
+          "long": 8196,
+          "short": 8541,
+          "net": -345,
+          "d_long": -814,
+          "d_short": 2502,
+          "d_net": -3316
+        }
+      }
+    },
+    "Jet/HO Spr (NYMEX)": {
+      "cftc_name": "GULF JET NY HEAT OIL SPR",
+      "oi": 12111,
+      "d_oi": 420,
+      "categories": {
+        "Prod/Merch": {
+          "long": 9614,
+          "short": 12046,
+          "net": -2432,
+          "d_long": 360,
+          "d_short": 420,
+          "d_net": -60
+        },
+        "Swap Dlrs": {
+          "long": 2106,
+          "short": 0,
+          "net": 2106,
+          "d_long": 60,
+          "d_short": 0,
+          "d_net": 60
+        },
+        "Mgd Money": {
+          "long": 0,
+          "short": 0,
+          "net": 0,
+          "d_long": 0,
+          "d_short": 0,
+          "d_net": 0
+        },
+        "Other Rpt": {
+          "long": 0,
+          "short": 0,
+          "net": 0,
+          "d_long": 0,
+          "d_short": 0,
+          "d_net": 0
+        }
+      }
+    },
+    "WTI (ICE)": {
+      "cftc_name": "CRUDE OIL, LIGHT SWEET",
+      "oi": 1006957,
+      "d_oi": -9537,
+      "categories": {
+        "Prod/Merch": {
+          "long": 506354,
+          "short": 361145,
+          "net": 145209,
+          "d_long": 19664,
+          "d_short": 6939,
+          "d_net": 12725
+        },
+        "Swap Dlrs": {
+          "long": 386,
+          "short": 146463,
+          "net": -146077,
+          "d_long": 3,
+          "d_short": 7108,
+          "d_net": -7105
+        },
+        "Mgd Money": {
+          "long": 20593,
+          "short": 11569,
+          "net": 9024,
+          "d_long": 811,
+          "d_short": -359,
+          "d_net": 1170
+        },
+        "Other Rpt": {
+          "long": 48931,
+          "short": 56969,
+          "net": -8038,
+          "d_long": -3799,
+          "d_short": 3029,
+          "d_net": -6828
+        }
+      }
+    },
+    "WTI Phys (NYMEX)": {
+      "cftc_name": "WTI-PHYSICAL",
+      "oi": 2502206,
+      "d_oi": -73685,
+      "categories": {
+        "Prod/Merch": {
+          "long": 661904,
+          "short": 292949,
+          "net": 368955,
+          "d_long": -36752,
+          "d_short": -40978,
+          "d_net": 4226
+        },
+        "Swap Dlrs": {
+          "long": 122451,
+          "short": 712692,
+          "net": -590241,
+          "d_long": 5944,
+          "d_short": 9273,
+          "d_net": -3329
+        },
+        "Mgd Money": {
+          "long": 178884,
+          "short": 76978,
+          "net": 101906,
+          "d_long": -16653,
+          "d_short": -15794,
+          "d_net": -859
+        },
+        "Other Rpt": {
+          "long": 168479,
+          "short": 78406,
+          "net": 90073,
+          "d_long": 3611,
+          "d_short": 5426,
+          "d_net": -1815
+        }
+      }
+    }
+  }
+}
