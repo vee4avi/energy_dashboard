@@ -1,0 +1,50 @@
+# For the cot-report-bot repository, where cot_report_bot.py sits at the top level
+# (no bot/ folder). Save it as .github/workflows/cot-bot.yml in that repo.
+#
+# Runs the Telegram COT bot every Friday after the CFTC release and commits the
+# commentary it writes, so the dashboard picks it up. The workflow's built-in
+# GITHUB_TOKEN is enough to push to this repository; no extra token is needed.
+name: Weekly COT bot
+
+on:
+  schedule:
+    # Friday 20:30 UTC = 16:30 US Eastern in summer, 15:30 in winter. The CFTC
+    # publishes at 15:30 Eastern, so this is after the release in both seasons.
+    - cron: "30 20 * * 5"
+  workflow_dispatch: {}        # the "Run workflow" button, for a manual run
+
+permissions:
+  contents: write
+
+concurrency: cot-bot
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"        # no pip cache: this repo has no requirements file
+
+      - run: pip install requests anthropic beautifulsoup4 openpyxl
+
+      - name: Run the bot
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          COMMENTARY_DIR: commentary
+          # Only the Friday schedule skips a week that is already saved (a holiday-delayed
+          # CFTC release). A manual "Run workflow" always runs, so you can test it.
+          SKIP_IF_ALREADY_SAVED: ${{ github.event_name == 'schedule' && '1' || '' }}
+        run: python cot_report_bot.py
+
+      - name: Commit the new commentary
+        run: |
+          git config user.name "cot-bot"
+          git config user.email "cot-bot@users.noreply.github.com"
+          git add commentary
+          git diff --cached --quiet || git commit -m "COT commentary $(date -u +%F)"
+          git push
