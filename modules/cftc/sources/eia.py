@@ -39,7 +39,7 @@ SERIES: tuple[Series, ...] = (
     Series("Jet fuel", "WKJSTUS1", "petroleum/stoc/wstk", "mb", 1000),
     Series("Natural gas", "NW2_EPG0_SWO_R48_BCF", "natural-gas/stor/wkly", "bcf", 1),
 )
-UNIT_LABEL = {"mb": "million bbl", "bcf": "Bcf"}
+UNIT_LABEL = {"mb": "mbbls", "bcf": "Bcf"}
 BY_KEY = {s.key: s for s in SERIES}
 
 

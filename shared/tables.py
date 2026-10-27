@@ -268,7 +268,7 @@ def stocks_html(
     if table is None or table.empty:
         return ""
     limits = limits if limits is not None else stock_limits(table)
-    unit_text = {"mb": "million bbl", "bcf": "Bcf"}
+    unit_text = {"mb": "mbbls", "bcf": "Bcf"}
     head = '<th class="corner">Series</th><th class="sub">Unit</th>' + "".join(
         f'<th class="sub{" gstart" if i == 0 else ""}">{html.escape(name)}</th>'
         for i, (name, _) in enumerate(columns)

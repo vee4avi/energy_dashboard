@@ -112,7 +112,7 @@ def test_compact_table_and_news_markup() -> None:
     table = storage.latest_table(demo.storage(), {s.key: s.unit for s in eia.SERIES})
     markup = tables.stocks_html(table)
     assert "\n" not in markup and markup.count("<tr>") == 1 + len(table)
-    assert "Crude (commercial)" in markup and "million bbl" in markup and "Bcf" in markup
+    assert "Crude (commercial)" in markup and "mbbls" in markup and "Bcf" in markup
     assert markup.count("background:#") == len(table) * len(tables.STOCK_COLUMNS), "every number is shaded"
     limits = tables.stock_limits(table)
     assert limits[("Level", "mb")] == table[table["Unit"].eq("mb")]["Level"].abs().max()

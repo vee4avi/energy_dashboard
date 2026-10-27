@@ -29,10 +29,22 @@ PRODUCT_COLORS = [
     "#4b5563",
 ]
 
-# EIA stock tables: the same idea in a soft olive, light enough that dark text stays readable.
-STOCK_CMAP = LinearSegmentedColormap.from_list(
-    "stock_olive", ["#f7f8ef", "#eaedd3", "#dce1b4", "#cdd49a", "#bcc582"]
-)
+# EIA stock tables: the blue scale above with its hue turned to green, so lightness and
+# saturation step the same way and the two sets of tables look like a pair.
+def _recolour(cmap, hue: float, softness: float = 0.5) -> LinearSegmentedColormap:
+    import colorsys
+
+    from matplotlib.colors import to_hex
+
+    shades = []
+    for position in (0.0, 0.25, 0.5, 0.75, 1.0):
+        h, lightness, saturation = colorsys.rgb_to_hls(*cmap(position)[:3])
+        # Green looks more vivid than blue at equal saturation, so tone it down; lift the
+        # darkest shades a little so they stay green rather than near-black.
+        lightness += 0.05 if lightness < 0.4 else 0.0
+        shades.append(to_hex(colorsys.hls_to_rgb(hue, lightness, saturation * softness)))
+    return LinearSegmentedColormap.from_list("stock_green", shades)
+
 
 NET_COLORSCALE = [[0.0, SHORT], [0.5, NEUTRAL], [1.0, LONG]]
 NET_CMAP = LinearSegmentedColormap.from_list("cot_net", [SHORT, NEUTRAL, LONG])
@@ -45,6 +57,7 @@ MAGNITUDE_CMAP = LinearSegmentedColormap.from_list(
 # Missing values must stay blank: matplotlib's default "bad" colour is
 # transparent, which pandas turns into solid black.
 MAGNITUDE_CMAP.set_bad("#ffffff")
+STOCK_CMAP = _recolour(MAGNITUDE_CMAP, 135 / 360)
 
 
 # EIA stocks tables: the same idea in olive, so the two data sets read as different things.

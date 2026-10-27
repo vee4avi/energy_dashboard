@@ -736,15 +736,18 @@ def storage_summary(as_of, baseline) -> None:
     if current.empty:
         st.caption("📦 No EIA reading on or before this date.")
         return
-    st.markdown(f"**{_fmt_date(as_of)}** · {_stocks_label(current)}, million bbl (gas in Bcf)")
+    st.markdown(f"**{_stocks_label(current)}**, mbbls (gas in Bcf)")
     earlier = storage_stats.as_of_table(data, units, baseline) if baseline is not None else pd.DataFrame()
     scale = tables.stock_limits(current, earlier)  # one scale across both date tables
     st.markdown(tables.stocks_html(current, limits=scale), unsafe_allow_html=True)
     if earlier.empty:
         return
-    st.markdown(f"**{_fmt_date(baseline)}** · {_stocks_label(earlier)}, million bbl (gas in Bcf)")
+    st.markdown(f"**{_stocks_label(earlier)}**, mbbls (gas in Bcf)")
     st.markdown(tables.stocks_html(earlier, limits=scale), unsafe_allow_html=True)
-    st.markdown(f"**Change** · {_fmt_date(as_of)} vs {_fmt_date(baseline)}, stocks")
+    st.markdown(
+        f"**Change** · EIA week ending {current['Week ending'].max():%d %b %Y} vs "
+        f"{earlier['Week ending'].max():%d %b %Y}, mbbls (gas in Bcf)"
+    )
     moves = storage_stats.difference(current, earlier)
     st.markdown(
         tables.stocks_html(moves, columns=tables.STOCK_CHANGE_COLUMNS, limits=tables.stock_limits(moves)),
@@ -770,7 +773,7 @@ def storage_tab(frame: pd.DataFrame, filters: Filters) -> None:
 
     table = storage_stats.latest_table(data, units)
     newest = table["Week ending"].max()
-    st.caption(f"Latest EIA reading: week ending {newest:%d %b %Y}. Petroleum in million barrels, gas in Bcf.")
+    st.caption(f"Latest EIA reading: week ending {newest:%d %b %Y}. Petroleum in mbbls (million barrels), gas in Bcf.")
     shown = table.assign(**{"Week ending": table["Week ending"].dt.strftime("%d %b %Y"),
                             "Unit": table["Unit"].map(eia.UNIT_LABEL)})
     signed = lambda fmt: st.column_config.NumberColumn(format=fmt)  # noqa: E731
