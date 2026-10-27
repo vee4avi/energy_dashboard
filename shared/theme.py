@@ -29,9 +29,9 @@ PRODUCT_COLORS = [
     "#4b5563",
 ]
 
-# EIA stock tables: the same idea in olive, so they read as a different data set.
+# EIA stock tables: the same idea in a soft olive, light enough that dark text stays readable.
 STOCK_CMAP = LinearSegmentedColormap.from_list(
-    "stock_olive", ["#f0f1e6", "#d3d8b0", "#a9b377", "#76843f", "#4a5622"]
+    "stock_olive", ["#f7f8ef", "#eaedd3", "#dce1b4", "#cdd49a", "#bcc582"]
 )
 
 NET_COLORSCALE = [[0.0, SHORT], [0.5, NEUTRAL], [1.0, LONG]]
