@@ -233,15 +233,41 @@ STOCK_CHANGE_COLUMNS = (
 )
 
 
+def _stock_group(column: str, unit: str) -> tuple[str, str]:
+    """Cells are shaded against others in the same column and unit (barrels and Bcf differ)."""
+    return (column, "pct" if column.endswith("%") else str(unit))
+
+
+def stock_limits(*frames: pd.DataFrame | None) -> dict[tuple[str, str], float]:
+    """Top of the shading scale per (column, unit), shared by the tables given."""
+    limits: dict[tuple[str, str], float] = {}
+    for frame in frames:
+        if frame is None or frame.empty:
+            continue
+        for column in frame.columns:
+            if column in ("Series", "Unit", "Week ending"):
+                continue
+            for unit, value in zip(frame["Unit"], frame[column]):
+                if pd.notna(value):
+                    key = _stock_group(column, unit)
+                    limits[key] = max(limits.get(key, 0.0), abs(float(value)))
+    return limits
+
+
 def stocks_html(
-    table: pd.DataFrame, max_width: int | None = TABLE_MAX_PX, columns: tuple = STOCK_COLUMNS
+    table: pd.DataFrame,
+    max_width: int | None = TABLE_MAX_PX,
+    columns: tuple = STOCK_COLUMNS,
+    limits: dict | None = None,
 ) -> str:
     """Latest stocks, one row per series, in the same look as the position tables.
 
     ``table`` is analytics.storage.latest_table(): Series, Unit, then the numbers.
+    Pass ``limits`` (see stock_limits) to share one shading scale across tables.
     """
     if table is None or table.empty:
         return ""
+    limits = limits if limits is not None else stock_limits(table)
     unit_text = {"mb": "million bbl", "bcf": "Bcf"}
     head = '<th class="corner">Series</th><th class="sub">Unit</th>' + "".join(
         f'<th class="sub{" gstart" if i == 0 else ""}">{html.escape(name)}</th>'
@@ -255,8 +281,16 @@ def stocks_html(
         ]
         for i, (name, fmt) in enumerate(columns):
             value = row[name]
-            text = "—" if pd.isna(value) else fmt.format(0.0 if round(float(value), 1) == 0 else value)
-            cells.append(f'<td class="{"gstart" if i == 0 else ""}">{text}</td>')
+            klass = "gstart" if i == 0 else ""
+            if pd.isna(value):
+                cells.append(f'<td class="{klass} na">—</td>')
+                continue
+            text = fmt.format(0.0 if round(float(value), 1) == 0 else value)
+            top = limits.get(_stock_group(name, row["Unit"])) or 1.0
+            rgba = theme.STOCK_CMAP(min(abs(float(value)) / top, 1.0))
+            cells.append(
+                f'<td class="{klass}" style="background:{to_hex(rgba)};color:{_text_colour(rgba)}">{text}</td>'
+            )
         rows.append("<tr>" + "".join(cells) + "</tr>")
     widths = f'<colgroup><col style="width:{PRODUCT_PX}px"><col style="width:90px">{"<col>" * len(columns)}</colgroup>'
     style = f"min-width:{PRODUCT_PX + 90 + CELL_MIN_PX * len(columns)}px"

@@ -29,6 +29,11 @@ PRODUCT_COLORS = [
     "#4b5563",
 ]
 
+# EIA stock tables: the same idea in olive, so they read as a different data set.
+STOCK_CMAP = LinearSegmentedColormap.from_list(
+    "stock_olive", ["#f0f1e6", "#d3d8b0", "#a9b377", "#76843f", "#4a5622"]
+)
+
 NET_COLORSCALE = [[0.0, SHORT], [0.5, NEUTRAL], [1.0, LONG]]
 NET_CMAP = LinearSegmentedColormap.from_list("cot_net", [SHORT, NEUTRAL, LONG])
 
@@ -40,6 +45,12 @@ MAGNITUDE_CMAP = LinearSegmentedColormap.from_list(
 # Missing values must stay blank: matplotlib's default "bad" colour is
 # transparent, which pandas turns into solid black.
 MAGNITUDE_CMAP.set_bad("#ffffff")
+
+
+# EIA stocks tables: the same idea in olive, so the two data sets read as different things.
+OLIVE_CMAP = LinearSegmentedColormap.from_list(
+    "eia_olive", ["#eef0e6", "#cfd6ac", "#a5b26e", "#72823c", "#434e1f"]
+)
 
 
 def product_color(products: list[str]) -> dict[str, str]:
@@ -236,7 +247,8 @@ PAGE_CSS = f"""
    Body text matches the tables; headings are three sizes up. */
 .cot-note {{ font-size: {TEXT_PX}px; line-height: 1.5; margin-bottom: 0.8rem; }}
 .cot-note-title {{ font-size: {HEAD_PX}px; font-weight: 700; line-height: 1.3; margin: 0.2rem 0 0.7rem 0; }}
-.sec-rule {{ border: 0; border-top: 1px solid rgba(128,128,128,.4); margin: 1.6rem 0 1.1rem 0; }}
+.sec-rule {{ border: 0; border-top: 1px solid rgba(128,128,128,.4); margin: 0 0 1.1rem 0; }}
+.sec-gap {{ height: calc(1.6rem + 5cm); }}
 .sec-title {{ font-size: 20px; font-weight: 700; line-height: 1.3; margin: 0 0 0.6rem 0; }}
 .cot-note a {{ color: inherit; text-decoration: underline; }}
 .cot-grid {{ display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.7rem; align-items: stretch; }}

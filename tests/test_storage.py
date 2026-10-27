@@ -113,6 +113,11 @@ def test_compact_table_and_news_markup() -> None:
     markup = tables.stocks_html(table)
     assert "\n" not in markup and markup.count("<tr>") == 1 + len(table)
     assert "Crude (commercial)" in markup and "million bbl" in markup and "Bcf" in markup
+    assert markup.count("background:#") == len(table) * len(tables.STOCK_COLUMNS), "every number is shaded"
+    limits = tables.stock_limits(table)
+    assert limits[("Level", "mb")] == table[table["Unit"].eq("mb")]["Level"].abs().max()
+    assert limits[("Level", "bcf")] != limits[("Level", "mb")], "barrels and Bcf have their own scales"
+    assert limits[("Level", "bcf")] > 1000 and limits[("Level", "mb")] < 1000, "oil and gas have their own scales"
     moves = tables.stocks_html(storage.difference(table, table), columns=tables.STOCK_CHANGE_COLUMNS)
     assert "\n" not in moves and "Week change" not in moves and "+0.0" in moves
     news = notes.body_html("## Headlines\n- Oil up [Reuters](https://example.com/a?x=1&y=2) on **supply**\n- $5 move")

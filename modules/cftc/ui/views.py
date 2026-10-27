@@ -724,7 +724,7 @@ def storage_summary(as_of, baseline) -> None:
     When stocks cannot be loaded it says why in one line instead of staying silent.
     """
     st.markdown(
-        "<hr class='sec-rule'><div class='sec-title'>US stocks (EIA)</div>", unsafe_allow_html=True
+        "<div class='sec-gap'></div><hr class='sec-rule'><div class='sec-title'>US stocks (EIA)</div>", unsafe_allow_html=True
     )
     try:
         data = services.load_storage()
@@ -737,15 +737,17 @@ def storage_summary(as_of, baseline) -> None:
         st.caption("📦 No EIA reading on or before this date.")
         return
     st.markdown(f"**{_fmt_date(as_of)}** · {_stocks_label(current)}, million bbl (gas in Bcf)")
-    st.markdown(tables.stocks_html(current), unsafe_allow_html=True)
     earlier = storage_stats.as_of_table(data, units, baseline) if baseline is not None else pd.DataFrame()
+    scale = tables.stock_limits(current, earlier)  # one scale across both date tables
+    st.markdown(tables.stocks_html(current, limits=scale), unsafe_allow_html=True)
     if earlier.empty:
         return
     st.markdown(f"**{_fmt_date(baseline)}** · {_stocks_label(earlier)}, million bbl (gas in Bcf)")
-    st.markdown(tables.stocks_html(earlier), unsafe_allow_html=True)
+    st.markdown(tables.stocks_html(earlier, limits=scale), unsafe_allow_html=True)
     st.markdown(f"**Change** · {_fmt_date(as_of)} vs {_fmt_date(baseline)}, stocks")
+    moves = storage_stats.difference(current, earlier)
     st.markdown(
-        tables.stocks_html(storage_stats.difference(current, earlier), columns=tables.STOCK_CHANGE_COLUMNS),
+        tables.stocks_html(moves, columns=tables.STOCK_CHANGE_COLUMNS, limits=tables.stock_limits(moves)),
         unsafe_allow_html=True,
     )
 
