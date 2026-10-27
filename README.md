@@ -33,37 +33,30 @@ Settings and secrets come from environment variables or `.streamlit/secrets.toml
 
 | Name | What it does |
 |---|---|
-| `COMMENTARY_REPO` | `owner/repo` of the bot's repository. The CFTC page reads the weekly commentary from its `commentary` folder. |
-| `COMMENTARY_GITHUB_TOKEN` | Fine-grained token, Contents: Read-only on that one repository. Only for a private repository. |
-| `ANTHROPIC_API_KEY` | Switches on "Analyse these dates" on the CFTC page. Leave out on a public deployment. |
-| `ANALYSIS_PASSWORD` | Optional code needed before that box will run (it costs money per run). |
 | `APP_PASSWORD` | Optional code for the whole app. Nothing shows until it is entered. |
-| `COT_VIEW_ONLY` | Set to `"1"` on a public deployment: hides the analysis box and every setup hint. |
 | `EIA_API_KEY` | Free key from eia.gov/opendata; turns on the Storage tab. |
 | `SODA_APP_TOKEN` | Optional CFTC data token, only if you hit rate limits. |
 
 Every line sits at the top of the file with straight double quotes, for example
-`COMMENTARY_REPO = "your-name/cot-report-bot"`, and above any `[section]` heading.
+`EIA_API_KEY = "your-key"`, and above any `[section]` heading.
 
-## Put it on Streamlit Community Cloud (view-only)
+Weekly commentary needs no secret: copy the bot's `.json` files into the `commentary` folder.
 
-One codebase serves both: the same files run on your computer with everything on, and
-on Community Cloud with generation switched off.
+## Put it on Streamlit Community Cloud
 
 1. Create a **private** GitHub repository and upload the contents of this folder, with
-   `app.py` at the repository root. Keep the `__init__.py` files. `extras/` can stay
-   or go; it is never run. Make sure `.gitignore` is uploaded too.
+   `app.py` at the repository root. Keep the `__init__.py` files and the `commentary` folder.
+   Make sure `.gitignore` is uploaded too.
 2. On share.streamlit.io choose New app, pick the repository, branch `main`, main file
    `app.py`. Under Advanced settings, Secrets, paste:
 
    ```toml
-   COT_VIEW_ONLY = "1"
-   COMMENTARY_REPO = "your-name/cot-report-bot"
-   COMMENTARY_GITHUB_TOKEN = "github_pat_..."   # read-only, that one repository
-   APP_PASSWORD = "choose-something"            # or restrict viewers in the app's sharing settings
+   EIA_API_KEY = "your-eia-key"
+   APP_PASSWORD = "choose-something"   # or restrict viewers in the app's sharing settings
    ```
-3. Pushing to GitHub redeploys the app by itself. If a change doesn't appear, use
-   Reboot app in the app's menu.
+3. Each week, add the bot's new `commentary/YYYY-MM-DD.json` file to this repository's
+   `commentary` folder. Pushing to GitHub redeploys the app by itself. If a change doesn't
+   appear, use Reboot app in the app's menu.
 
 Community Cloud apps are public by default, so set `APP_PASSWORD`, restrict viewers, or
 both. The filesystem is wiped on every restart, so the first load afterwards is slower.

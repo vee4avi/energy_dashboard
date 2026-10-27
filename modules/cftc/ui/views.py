@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import hmac
-import re
 
 import pandas as pd
 import plotly.express as px
@@ -11,10 +9,10 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from modules.cftc import services
-from modules.cftc.analytics import cot, narrative
+from modules.cftc.analytics import cot
 from modules.cftc.analytics import storage as storage_stats
 from modules.cftc.config import settings
-from modules.cftc.sources import commentary, eia, llm
+from modules.cftc.sources import commentary, eia
 from shared import notes, state, tables, theme
 from modules.cftc.ui.filters import Filters
 
@@ -55,11 +53,6 @@ def _value_frame(frame: pd.DataFrame, filters: Filters) -> pd.DataFrame:
 
 def empty_state(message: str) -> None:
     st.info(message)
-
-
-def _markdown_text(text: str) -> str:
-    """Keep single line breaks as line breaks, and stop "$" pairs turning into LaTeX."""
-    return re.sub(r"(?<!\n)\n(?!\n)", "  \n", text.replace("$", "\\$"))
 
 
 def _note(text: str) -> None:
@@ -108,122 +101,6 @@ def commentary_panel(record: commentary.Commentary, filters: Filters) -> None:
                 st.markdown(
                     f"<div class='cot-note'>{notes.body_html(record.news)}</div>", unsafe_allow_html=True
                 )
-
-
-def analysis_box(
-    summary: pd.DataFrame,
-    filters: Filters,
-    labels: dict[str, str],
-    as_of: pd.Timestamp,
-    baseline: pd.Timestamp,
-) -> None:
-    """Run a fresh analysis for the dates and products currently on screen.
-
-    Every run is a paid API call, so the box sits behind an optional access code,
-    a per-session cap, and a cache that serves identical requests for free.
-    """
-    with st.container(border=True):
-        st.markdown("**Analyse these dates**")
-
-        password = services.analysis_password()
-        if password and not st.session_state.get("analysis_unlocked"):
-            st.caption("Enter the access code to run a new analysis.")
-            code = st.text_input("Access code", type="password", key="analysis_code")
-            if code:
-                if hmac.compare_digest(code.encode(), password.encode()):
-                    st.session_state["analysis_unlocked"] = True
-                    st.rerun()
-                else:
-                    st.error("That code isn't right.")
-            return
-
-        weeks = max(1, round((as_of - baseline).days / 7))
-        data, omitted = narrative.data_block(summary, labels, settings.ANALYSIS_MAX_ROWS)
-        st.caption(
-            f"{_fmt_date(as_of)} vs {_fmt_date(baseline)} · {weeks} week"
-            f"{'s' if weeks != 1 else ''} · the products and trader categories "
-            "selected in the sidebar."
-        )
-
-        news_possible = weeks <= settings.ANALYSIS_NEWS_MAX_WEEKS
-        want_news = st.checkbox(
-            "Include a news search for this period",
-            value=False,
-            key="analysis_news",
-            disabled=not news_possible,
-            help="Searches the web for oil news dated inside these two dates and "
-            "feeds it to the analysis. It is the main cost of a run. Available for "
-            f"comparisons up to {settings.ANALYSIS_NEWS_MAX_WEEKS} weeks.",
-        ) and news_possible
-        st.caption(
-            "Cost: " + settings.ANALYSIS_COST_HINT["news" if want_news else "plain"] + " per run."
-        )
-
-        news_range = (
-            (baseline.strftime("%Y-%m-%d"), as_of.strftime("%Y-%m-%d")) if want_news else None
-        )
-        request = (
-            data,
-            omitted,
-            _fmt_date(as_of),
-            _fmt_date(baseline),
-            weeks,
-            settings.BASIS_LABELS.get(filters.basis, filters.basis),
-            filters.report,
-            news_range,
-            settings.ANALYSIS_MODEL,
-        )
-        seen: set = st.session_state.setdefault("analysis_seen", set())
-        used_up = request not in seen and len(seen) >= settings.ANALYSIS_MAX_PER_SESSION
-        clicked = st.button(
-            "Run analysis", key="analysis_run", type="primary", disabled=used_up or not data
-        )
-        if used_up:
-            st.caption(
-                f"This session has used its {settings.ANALYSIS_MAX_PER_SESSION} analyses. "
-                "Reload the page to start a new session."
-            )
-
-        if clicked:
-            try:
-                with st.spinner("Writing the analysis…"):
-                    result = services.run_analysis(*request)
-            except llm.AnalysisError as error:
-                st.error(str(error))
-                return
-            seen.add(request)
-            st.session_state["analysis_last"] = (request, result)
-
-        last = st.session_state.get("analysis_last")
-        if last is None:
-            return
-        if last[0] != request:
-            st.caption("The dates or filters changed since the last run. Run again to refresh.")
-            return
-
-        result = last[1]
-        _note(result["text"])
-        facts = [
-            result["model"],
-            f"{result['input_tokens']:,} in / {result['output_tokens']:,} out tokens",
-        ]
-        if result["searches"]:
-            facts.append(f"{result['searches']} web searches")
-        if result["cost"] is not None:
-            facts.append(f"≈ ${result['cost']:.3f}")
-        st.caption(" · ".join(facts))
-        if result["news_requested"] and not result["news"]:
-            st.caption("The news search returned nothing, so this uses positioning alone.")
-        if result["news"]:
-            with st.expander("News used"):
-                st.markdown(_markdown_text(result["news"]))
-        st.caption("Not saved. Download it if you want to keep it.")
-        st.download_button(
-            "Download as text",
-            data=result["text"],
-            file_name=f"cot_analysis_{as_of:%Y-%m-%d}_vs_{baseline:%Y-%m-%d}.md",
-            key="analysis_download",
-        )
 
 
 # --------------------------------------------------------------------------
@@ -347,25 +224,13 @@ def snapshot_tab(frame: pd.DataFrame, filters: Filters) -> None:
                 f"💬 Saved commentary exists for {_fmt_date(as_of)} against "
                 f"{_fmt_date(other.prior_date)}. Set “Compare against” to Last week to see it."
             )
-    can_analyse = services.analysis_enabled() and have_baseline
-    read_only = services.view_only()
-    if not records and not commentary_note:
-        if read_only:
-            st.caption("💬 No saved commentary is available yet.")
-        else:
-            st.caption(
-                f"💬 No saved commentary found yet (looked in {services.commentary_source()}). "
-                "It appears once the bot has run with the saving step."
-            )
-    if not services.analysis_enabled() and not read_only:
-        reason = services.secrets_problem("ANTHROPIC_API_KEY")
+    if not records:
         st.caption(
-            "💬 No analysis box yet: ANTHROPIC_API_KEY was not found. "
-            + (reason + " " if reason else "")
-            + "Restart the dashboard after changing the secrets file (see the README)."
+            "💬 No commentary yet: put the bot's weekly .json files in the dashboard's "
+            "`commentary` folder."
         )
 
-    if saved is not None or can_analyse:
+    if saved is not None:
         main_col, side_col = st.columns([11, 9], gap="small")
     else:
         main_col, side_col = st.container(), None
@@ -377,10 +242,7 @@ def snapshot_tab(frame: pd.DataFrame, filters: Filters) -> None:
         storage_summary()
     if side_col is not None:
         with side_col:
-            if saved is not None:
-                commentary_panel(saved, filters)
-            if can_analyse:
-                analysis_box(summary, filters, labels, as_of, baseline)
+            commentary_panel(saved, filters)
 
     st.markdown(f"**Positioning extremes** · {filters.lookback}-week window")
     st.caption(

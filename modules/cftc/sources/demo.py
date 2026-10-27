@@ -195,7 +195,6 @@ def commentary() -> dict[pd.Timestamp, Commentary]:
 
 def storage() -> pd.DataFrame:
     """Synthetic weekly stocks with a seasonal swing, for ``COT_DEMO=1``."""
-    from modules.cftc.sources import eia
 
     end = pd.Timestamp(dt.date.today())
     end = end - pd.Timedelta(days=(end.weekday() - 4) % 7)  # last Friday

@@ -69,41 +69,11 @@ with a one-line hint if commentary exists for the report date. The bot analyses 
 disaggregated report on a futures + options (combined) basis, so the panel says so
 when you are viewing a different basis. History starts from the first run that saves.
 
-**Where it comes from.** The dashboard reads the commentary from the `commentary` folder of the
-bot's GitHub repository, and from nowhere else. Set `COMMENTARY_REPO` to the repository
-(`owner/repository`). It looks again every ten minutes and when you press Refresh data,
-and downloads each weekly file only once. If GitHub cannot be reached, or
-`COMMENTARY_REPO` is missing, the page shows a note saying so. Settings come from the
-environment or Streamlit secrets:
-
-```toml
-COMMENTARY_REPO = "your-name/cot-report-bot"
-# Optional:
-COMMENTARY_BRANCH = "main"                 # default
-COMMENTARY_FOLDER = "commentary"           # default
-COMMENTARY_GITHUB_TOKEN = "github_pat_..." # only for a private repository
-```
-
-For a private repository, create a fine-grained token limited to that one repository
-with Contents: Read-only, and keep it in `.streamlit/secrets.toml` (already in
-`.gitignore`). A public repository needs no token.
-
-**Analyse these dates.** With `ANTHROPIC_API_KEY` set, a box under the commentary runs
-a new analysis for the dates and products on screen, using the dashboard's own
-numbers (net, changes, COT index, z-score). An optional dated news search is offered
-up to eight weeks. It costs about $0.02 a run, or $0.08 to $0.15 with news. The key
-and an optional `ANALYSIS_PASSWORD` come from the environment or Streamlit secrets:
-
-```toml
-# .streamlit/secrets.toml  (locally), or the app's Secrets box on Community Cloud
-ANTHROPIC_API_KEY = "sk-ant-..."
-ANALYSIS_PASSWORD = "choose-something"   # recommended on any public link
-```
-
-Each browser session may start ten new analyses, identical requests are served from
-a cache for free, and every result shows its token use and estimated cost. Set a
-monthly spend limit on the key in the Anthropic Console as well. Prices live in
-`MODEL_PRICES` in `modules/cftc/config/settings.py`; update them when Anthropic's change.
+**Where it comes from.** The dashboard reads the `commentary` folder next to `app.py`, and
+nothing else. Copy each week's file from the bot repository's `commentary` folder into it
+(the file names are dates, like `2026-10-20.json`). No secrets or network are involved. It
+shows the newest 104 files, rereads every ten minutes and when you press Refresh data. An
+empty folder just shows a one-line hint. There is no on-demand analysis.
 
 ## The weekly bot
 
@@ -147,9 +117,9 @@ modules/cftc/
   page.py            the page: header, sidebar filters, tabs
   services.py        cached loaders (the only place caching touches data)
   config/settings.py dataset ids, trader categories, universe + group rules, defaults
-  sources/           cftc.py (Socrata), ice.py (PDF reports), commentary.py (GitHub),
-                     llm.py (on-demand analysis), demo.py (synthetic data)
-  analytics/         cot.py (net, changes, z-scores, COT index), narrative.py (prompts)
+  sources/           cftc.py (Socrata), ice.py (PDF reports), commentary.py (reads the commentary folder),
+                     demo.py (synthetic data)
+  analytics/         cot.py (net, changes, z-scores, COT index)
   ui/                filters.py (sidebar), views.py (the tabs)
 shared/              theme, long/short/net tables, commentary cards, state, secrets, access code
 ```
@@ -202,7 +172,7 @@ export gives the specific contract months that actually match each COT contract.
 python tests/test_cftc_parsing.py     # CFTC column resolution and tidying
 python tests/test_ice_parsing.py      # ICE PDF layout, pinned to real reports
 python tests/test_tables.py           # long/short/net tables, source tagging
-python tests/test_analysis.py         # saved commentary, prompts, cost, the Snapshot panel
+python tests/test_commentary.py       # saved commentary and the Snapshot panel
 python tests/test_notes.py            # commentary cards, table widths, Full table, Compare breakdown
 python tests/test_app.py              # router, home page, access code, filters kept between pages
 # or: python -m pytest tests -q

@@ -1,8 +1,8 @@
 """Weekly commentary saved by the Telegram bot.
 
 The bot writes one JSON file per report date (``commentary/2026-09-29.json``).
-This module only reads them, straight from the GitHub repository the bot commits
-to. No Streamlit.
+Copy those files into the dashboard's own ``commentary`` folder; this module only
+reads that folder. No Streamlit.
 """
 
 from __future__ import annotations
@@ -13,15 +13,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
-import requests
 
-GITHUB_API = "https://api.github.com"
-_REPO = re.compile(r"[\w.-]+/[\w.-]+")
-_FOLDER = re.compile(r"[\w.\-/]*")
-
-
-class FetchError(RuntimeError):
-    """Reading from GitHub failed. The message is safe to show (it never holds a token)."""
+_DATED = re.compile(r"\d{4}-\d{2}-\d{2}\.json")  # the bot names each file by report date
 
 
 @dataclass(frozen=True)
@@ -60,94 +53,29 @@ def _parse_text(raw_text: str) -> Commentary | None:
 
 
 # --------------------------------------------------------------------------
-# GitHub
+# Folder
 # --------------------------------------------------------------------------
-# Files are named by date and never change once written, so a parsed file is
-# kept by its content hash: after the first load only new weeks are downloaded.
-_BY_SHA: dict[str, Commentary | None] = {}
+def load_folder(folder: Path, max_files: int = 104) -> dict[pd.Timestamp, Commentary]:
+    """Every readable record in ``folder`` (newest ``max_files`` only).
 
-
-def _get(url: str, headers: dict, timeout: float, params: dict | None = None):
-    try:
-        return requests.get(url, headers=headers, params=params, timeout=timeout)
-    except requests.RequestException as error:
-        raise FetchError(f"network error ({type(error).__name__})") from error
-
-
-def _check(reply) -> None:
-    code = reply.status_code
-    if code == 200:
-        return
-    if code == 401:
-        raise FetchError("the token was rejected (HTTP 401)")
-    if code in (403, 429):
-        raise FetchError(f"access denied or rate limit reached (HTTP {code})")
-    raise FetchError(f"GitHub answered HTTP {code}")
-
-
-def load_github(
-    repo: str,
-    branch: str = "main",
-    folder: str = "commentary",
-    token: str | None = None,
-    max_files: int = 104,
-    timeout: float = 15,
-) -> dict[pd.Timestamp, Commentary]:
-    """Every readable record in ``folder`` of ``owner/repo``, newest ``max_files`` only.
-
-    A repo that has no such folder yet (the bot has not run) returns {}. Anything
-    else that goes wrong raises FetchError.
+    A missing or empty folder is not an error: it returns {}. A file that cannot
+    be read or does not look like the bot's output is skipped.
     """
-    folder = (folder or "").strip("/")
-    if not _REPO.fullmatch(repo or "") or ".." in folder or not _FOLDER.fullmatch(folder):
-        raise FetchError("COMMENTARY_REPO should look like owner/repository")
-
-    api_headers = {
-        "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-    }
-    raw_headers: dict[str, str] = {}
-    if token:
-        api_headers["Authorization"] = f"Bearer {token}"
-        raw_headers["Authorization"] = f"Bearer {token}"
-
-    listing = _get(
-        f"{GITHUB_API}/repos/{repo}/contents/{folder}", api_headers, timeout, {"ref": branch}
-    )
-    if listing.status_code == 404:
+    if not folder.is_dir():
         return {}
-    _check(listing)
-    try:
-        entries = listing.json()
-    except ValueError as error:
-        raise FetchError("GitHub sent an unreadable reply") from error
-    if not isinstance(entries, list):
-        return {}
-
     files = sorted(
-        (
-            entry
-            for entry in entries
-            if isinstance(entry, dict)
-            and entry.get("type") == "file"
-            and str(entry.get("name", "")).endswith(".json")
-            and entry.get("download_url")
-            and entry.get("sha")
-        ),
-        key=lambda entry: entry["name"],
-        reverse=True,  # file names are ISO dates, so this is newest first
+        (path for path in folder.glob("*.json") if _DATED.fullmatch(path.name)),
+        key=lambda path: path.name,
+        reverse=True,
     )[:max_files]
-
     records: dict[pd.Timestamp, Commentary] = {}
-    for entry in files:
-        sha = entry["sha"]
-        if sha not in _BY_SHA:
-            reply = _get(entry["download_url"], raw_headers, timeout)
-            _check(reply)
-            _BY_SHA[sha] = _parse_text(reply.text)
-        record = _BY_SHA[sha]
+    for path in files:  # file names are ISO dates, so this is newest first
+        try:
+            record = _parse_text(path.read_text(encoding="utf-8"))
+        except OSError:
+            continue
         if record is not None:
-            records[record.report_date] = record
+            records.setdefault(record.report_date, record)
     return records
 
 

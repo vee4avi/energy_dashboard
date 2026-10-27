@@ -16,16 +16,14 @@ from __future__ import annotations
 
 import datetime as dt
 import os
-import re
 from pathlib import Path
 
 import pandas as pd
 import streamlit as st
 
-from modules.cftc.analytics import cot, narrative
+from modules.cftc.analytics import cot
 from modules.cftc.config import settings
-from modules.cftc.sources import cftc, commentary, demo, eia, ice, llm
-from shared.secrets import problem as secrets_problem
+from modules.cftc.sources import cftc, commentary, demo, eia, ice
 from shared.secrets import secret as _secret
 
 DEMO_MODE = os.getenv("COT_DEMO", "").strip().lower() in {"1", "true", "yes"}
@@ -217,97 +215,24 @@ def _attach_catalog_fields(frame: pd.DataFrame, report: str, basis: str) -> pd.D
 # --------------------------------------------------------------------------
 # Analysis
 # --------------------------------------------------------------------------
+COMMENTARY_DIR = Path(__file__).resolve().parents[2] / "commentary"
+
+
 def commentary_source() -> str:
-    """Where saved commentary is being looked for, in words, for on-screen hints."""
-    repo = _secret("COMMENTARY_REPO")
-    return f"the GitHub repo {repo}" if repo else "GitHub (COMMENTARY_REPO is not set)"
-
-
-def analysis_key() -> str | None:
-    return _secret("ANTHROPIC_API_KEY")
-
-
-def view_only() -> bool:
-    """A read-only deployment (COT_VIEW_ONLY=1): saved commentary yes, generating no.
-
-    Visitors then see no analysis box and no setup hints, whatever else is configured.
-    """
-    return (_secret("COT_VIEW_ONLY") or "").strip().lower() in {"1", "true", "yes"}
-
-
-def analysis_enabled() -> bool:
-    return bool(analysis_key()) and not view_only()
-
-
-def analysis_password() -> str | None:
-    """If set, the on-demand analysis needs this access code."""
-    return _secret("ANALYSIS_PASSWORD")
+    """Where saved commentary is looked for, in words, for on-screen hints."""
+    return "the commentary folder"
 
 
 @st.cache_data(ttl=600, show_spinner=False)
 def load_commentary() -> tuple[dict, str]:
     """Weekly commentary keyed by report date, plus a note if it could not be read.
 
-    The only source is the "commentary" folder of the bot's GitHub repository
-    (COMMENTARY_REPO). A failed read never raises: it returns no records and a note
-    that the page shows.
+    The only source is the ``commentary`` folder next to ``app.py``, filled with the
+    bot's JSON files. Nothing is fetched and no secret is needed.
     """
     if DEMO_MODE:
         return demo.commentary(), ""
-    repo = _secret("COMMENTARY_REPO")
-    if not repo:
-        return {}, (
-            "Commentary is read from GitHub, and COMMENTARY_REPO isn't set. "
-            "Add it to the secrets file (see the README)."
-        )
-    try:
-        records = commentary.load_github(
-            repo,
-            branch=_secret("COMMENTARY_BRANCH") or "main",
-            folder=_secret("COMMENTARY_FOLDER") or "commentary",
-            token=_secret("COMMENTARY_GITHUB_TOKEN"),
-            max_files=settings.COMMENTARY_GITHUB_MAX_FILES,
-        )
-    except commentary.FetchError as error:
-        return {}, f"Couldn't read commentary from GitHub: {error}."
-    return records, ""
-
-
-@st.cache_data(ttl=60 * 60 * 24, show_spinner=False, max_entries=50)
-def run_analysis(
-    data: str,
-    omitted: int,
-    as_of: str,
-    baseline: str,
-    weeks: int,
-    basis: str,
-    report: str,
-    news_range: tuple[str, str] | None,
-    model: str,
-) -> dict:
-    """One paid analysis. Identical requests are served from the cache, free."""
-    key = analysis_key()
-    if not key:
-        raise llm.AnalysisError("No API key is configured.")
-    api = llm.client(key)
-
-    news, usage = "", llm.Usage()
-    if news_range:
-        news, usage = llm.fetch_news(api, model, narrative.news_prompt(*news_range))
-    prompt = narrative.build_prompt(data, as_of, baseline, weeks, basis, report, news, omitted)
-    text, written = llm.write_commentary(api, model, prompt)
-    usage = usage + written
-    return {
-        "text": text,
-        "news": news,
-        "news_requested": news_range is not None,
-        "model": model,
-        "input_tokens": usage.input_tokens,
-        "output_tokens": usage.output_tokens,
-        "searches": usage.searches,
-        "cost": usage.cost(model),
-        "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
-    }
+    return commentary.load_folder(COMMENTARY_DIR, settings.COMMENTARY_MAX_FILES), ""
 
 
 # --------------------------------------------------------------------------

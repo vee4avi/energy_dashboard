@@ -7,7 +7,6 @@ project grows to prices / EIA storage, add their settings alongside these.
 
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass, field
 
 # --------------------------------------------------------------------------
@@ -53,26 +52,10 @@ CACHE_TTL_SECONDS = 60 * 60 * 6  # COT is weekly; 6h keeps it fresh enough
 # --------------------------------------------------------------------------
 # Analysis (saved weekly commentary + optional on-demand runs)
 # --------------------------------------------------------------------------
-# The bot saves one JSON file per report date in the "commentary" folder of its
-# GitHub repository. The dashboard reads them from there (COMMENTARY_REPO, set in
-# the secrets file or the environment) and from nowhere else.
+# The bot saves one JSON file per report date. Copy them into the "commentary"
+# folder next to app.py; the dashboard reads that folder and nothing else.
 COMMENTARY_REPORT = "disaggregated"  # the bot only analyses this report family
-# How many of the newest weekly files to fetch.
-COMMENTARY_GITHUB_MAX_FILES = 104
-
-# On-demand analysis. Needs ANTHROPIC_API_KEY (environment or Streamlit secrets);
-# without it the "run a new analysis" box simply does not appear.
-ANALYSIS_MODEL = os.getenv("ANALYSIS_MODEL", "claude-sonnet-5-5")
-ANALYSIS_MAX_PER_SESSION = 10  # runs one browser session may start
-ANALYSIS_MAX_ROWS = 120  # product x category lines sent to the model
-ANALYSIS_NEWS_MAX_WEEKS = 8  # a dated news search is only offered up to this span
-# US$ per million tokens (input, output), from Anthropic's pricing page. Update
-# when prices change; an unknown model just shows no cost estimate.
-MODEL_PRICES: dict[str, tuple[float, float]] = {
-    "claude-sonnet-5-5": (2.0, 10.0),
-    "claude-sonnet-4-6": (3.0, 15.0),
-}
-WEB_SEARCH_PRICE_PER_1000 = 10.0
+COMMENTARY_MAX_FILES = 104  # how many of the newest weekly files to read
 ANALYSIS_COST_HINT = {
     "plain": "about $0.02",
     "news": "about $0.08 to $0.15",
