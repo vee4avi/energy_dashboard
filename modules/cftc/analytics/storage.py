@@ -37,11 +37,22 @@ def seasonal(values: pd.Series) -> pd.DataFrame:
     return frame
 
 
-def latest_table(long_frame: pd.DataFrame, units: dict[str, str]) -> pd.DataFrame:
-    """One row per series for its newest week."""
+def as_of_table(long_frame: pd.DataFrame, units: dict[str, str], date=None) -> pd.DataFrame:
+    """One row per series for the newest week ending on or before ``date`` (default: newest).
+
+    Rows follow the order of ``units``; a series with no reading by then is left out.
+    """
+    cutoff = pd.Timestamp(date) if date is not None else None
     rows = []
-    for name, group in long_frame.groupby("series", sort=False):
+    for name in units:
+        group = long_frame[long_frame["series"].eq(name)]
+        if group.empty:
+            continue
         stats = seasonal(group.set_index("period")["value"])
+        if cutoff is not None:
+            stats = stats[stats.index <= cutoff]
+        if stats.empty:
+            continue
         last = stats.iloc[-1]
         rows.append({
             "Series": name, "Unit": units.get(name, ""), "Week ending": stats.index[-1],
@@ -50,6 +61,24 @@ def latest_table(long_frame: pd.DataFrame, units: dict[str, str]) -> pd.DataFram
             "Year on year": last["yoy"],
         })
     return pd.DataFrame(rows)
+
+
+def latest_table(long_frame: pd.DataFrame, units: dict[str, str]) -> pd.DataFrame:
+    """One row per series for its newest week."""
+    return as_of_table(long_frame, units)
+
+
+CHANGE_COLUMNS = ["Level", "vs 5-yr avg", "vs 5-yr avg %", "Year on year"]
+
+
+def difference(current: pd.DataFrame, earlier: pd.DataFrame) -> pd.DataFrame:
+    """Current minus earlier for the numbers in ``CHANGE_COLUMNS``, series matched by name."""
+    now = current.set_index("Series")
+    then = earlier.set_index("Series").reindex(now.index)
+    out = now[["Unit"]].copy()
+    for column in CHANGE_COLUMNS:
+        out[column] = now[column] - then[column]
+    return out.reset_index()
 
 
 def positioning_overlay(stocks: pd.Series, positions: pd.DataFrame) -> pd.DataFrame:

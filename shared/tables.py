@@ -226,9 +226,16 @@ STOCK_COLUMNS = (
     ("Level", "{:,.1f}"), ("Week change", "{:+,.1f}"), ("vs 5-yr avg", "{:+,.1f}"),
     ("vs 5-yr avg %", "{:+,.1f}%"), ("Year on year", "{:+,.1f}"),
 )
+# The change between two dates: every number is a difference, so every one is signed.
+STOCK_CHANGE_COLUMNS = (
+    ("Level", "{:+,.1f}"), ("vs 5-yr avg", "{:+,.1f}"),
+    ("vs 5-yr avg %", "{:+,.1f}"), ("Year on year", "{:+,.1f}"),
+)
 
 
-def stocks_html(table: pd.DataFrame, max_width: int | None = TABLE_MAX_PX) -> str:
+def stocks_html(
+    table: pd.DataFrame, max_width: int | None = TABLE_MAX_PX, columns: tuple = STOCK_COLUMNS
+) -> str:
     """Latest stocks, one row per series, in the same look as the position tables.
 
     ``table`` is analytics.storage.latest_table(): Series, Unit, then the numbers.
@@ -238,7 +245,7 @@ def stocks_html(table: pd.DataFrame, max_width: int | None = TABLE_MAX_PX) -> st
     unit_text = {"mb": "million bbl", "bcf": "Bcf"}
     head = '<th class="corner">Series</th><th class="sub">Unit</th>' + "".join(
         f'<th class="sub{" gstart" if i == 0 else ""}">{html.escape(name)}</th>'
-        for i, (name, _) in enumerate(STOCK_COLUMNS)
+        for i, (name, _) in enumerate(columns)
     )
     rows = []
     for _, row in table.iterrows():
@@ -246,13 +253,13 @@ def stocks_html(table: pd.DataFrame, max_width: int | None = TABLE_MAX_PX) -> st
             f'<th class="prod">{html.escape(str(row["Series"]))}</th>',
             f'<td class="na" style="text-align:left">{html.escape(unit_text.get(row["Unit"], str(row["Unit"])))}</td>',
         ]
-        for i, (name, fmt) in enumerate(STOCK_COLUMNS):
+        for i, (name, fmt) in enumerate(columns):
             value = row[name]
-            text = "—" if pd.isna(value) else fmt.format(value)
+            text = "—" if pd.isna(value) else fmt.format(0.0 if round(float(value), 1) == 0 else value)
             cells.append(f'<td class="{"gstart" if i == 0 else ""}">{text}</td>')
         rows.append("<tr>" + "".join(cells) + "</tr>")
-    widths = f'<colgroup><col style="width:{PRODUCT_PX}px"><col style="width:90px">{"<col>" * len(STOCK_COLUMNS)}</colgroup>'
-    style = f"min-width:{PRODUCT_PX + 90 + CELL_MIN_PX * len(STOCK_COLUMNS)}px"
+    widths = f'<colgroup><col style="width:{PRODUCT_PX}px"><col style="width:90px">{"<col>" * len(columns)}</colgroup>'
+    style = f"min-width:{PRODUCT_PX + 90 + CELL_MIN_PX * len(columns)}px"
     if max_width:
         style += f";max-width:{max_width}px"
     return (

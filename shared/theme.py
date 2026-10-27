@@ -236,6 +236,8 @@ PAGE_CSS = f"""
    Body text matches the tables; headings are three sizes up. */
 .cot-note {{ font-size: {TEXT_PX}px; line-height: 1.5; margin-bottom: 0.8rem; }}
 .cot-note-title {{ font-size: {HEAD_PX}px; font-weight: 700; line-height: 1.3; margin: 0.2rem 0 0.7rem 0; }}
+.sec-rule {{ border: 0; border-top: 1px solid rgba(128,128,128,.4); margin: 1.6rem 0 1.1rem 0; }}
+.sec-title {{ font-size: 20px; font-weight: 700; line-height: 1.3; margin: 0 0 0.6rem 0; }}
 .cot-note a {{ color: inherit; text-decoration: underline; }}
 .cot-grid {{ display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.7rem; align-items: stretch; }}
 .cot-card {{ border: 1px solid rgba(128,128,128,.3); border-radius: 8px; padding: 0.65rem 0.85rem 0.45rem 0.85rem; }}

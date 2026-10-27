@@ -84,6 +84,16 @@ def test_latest_table_and_overlay() -> None:
     assert list(table["Series"]) == [s.key for s in eia.SERIES]
     assert table["Level"].notna().all() and table["vs 5-yr avg %"].notna().all()
 
+    assert list(table["Series"]) == ["Crude (commercial)", "SPR", "Cushing crude", "Gasoline",
+                                     "Distillate", "Jet fuel", "Natural gas"]
+    units = {s.key: s.unit for s in eia.SERIES}
+    older = storage.as_of_table(data, units, table["Week ending"].max() - pd.Timedelta(days=7))
+    assert (older["Week ending"] == table["Week ending"].max() - pd.Timedelta(days=7)).all()
+    change = storage.difference(table, older)
+    assert abs(change.loc[0, "Level"] - (table.loc[0, "Level"] - older.loc[0, "Level"])) < 1e-9
+    assert abs(change.loc[0, "Level"] - table.loc[0, "Week change"]) < 1e-9, "one week apart = the weekly change"
+    assert storage.as_of_table(data, units, "2000-01-01").empty
+
     stocks = data[data["series"].eq("Gasoline")].set_index("period")["value"]
     positions = pd.DataFrame({
         "report_date": pd.date_range("2025-01-07", periods=60, freq="7D"), "net": range(60),
@@ -103,6 +113,8 @@ def test_compact_table_and_news_markup() -> None:
     markup = tables.stocks_html(table)
     assert "\n" not in markup and markup.count("<tr>") == 1 + len(table)
     assert "Crude (commercial)" in markup and "million bbl" in markup and "Bcf" in markup
+    moves = tables.stocks_html(storage.difference(table, table), columns=tables.STOCK_CHANGE_COLUMNS)
+    assert "\n" not in moves and "Week change" not in moves and "+0.0" in moves
     news = notes.body_html("## Headlines\n- Oil up [Reuters](https://example.com/a?x=1&y=2) on **supply**\n- $5 move")
     assert '<a href="https://example.com/a?x=1&amp;y=2"' in news and "<strong>supply</strong>" in news
     assert "<p><strong>Headlines</strong></p>" in news and "&#36;5" in news
@@ -115,6 +127,8 @@ def test_tab_runs() -> None:
     os.chdir(ROOT)
     at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=90).run()
     assert not at.exception, [e.value for e in at.exception]
+    text = "\n".join(m.value for m in at.markdown)
+    assert "US stocks (EIA)" in text and "sec-rule" in text and text.count("EIA week ending") >= 2
     for series in at.selectbox(key="storage_series").options:
         at.selectbox(key="storage_series").set_value(series).run()
         assert not at.exception, (series, [e.value for e in at.exception])

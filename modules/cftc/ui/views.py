@@ -239,7 +239,7 @@ def snapshot_tab(frame: pd.DataFrame, filters: Filters) -> None:
         show_current()
         show_earlier()
         show_change()
-        storage_summary()
+        storage_summary(as_of, baseline if have_baseline else None)
     if side_col is not None:
         with side_col:
             commentary_panel(saved, filters)
@@ -713,23 +713,41 @@ def _overlay_figure(name: str, unit: str, merged: pd.DataFrame, product: str, ca
     return theme.layout(fig, height=430)
 
 
-def storage_summary() -> None:
-    """A compact table of the latest EIA stocks, for under the positioning tables.
+def _stocks_label(frame: pd.DataFrame) -> str:
+    return f"EIA week ending {frame['Week ending'].max():%d %b %Y}"
 
-    Quiet when stocks are unavailable (no key, no network): the Storage tab explains why.
+
+def storage_summary(as_of, baseline) -> None:
+    """EIA stocks for the two dates being compared, and the change, under the CFTC tables.
+
+    Each CFTC date (a Tuesday) is paired with the newest EIA week ending on or before it.
+    When stocks cannot be loaded it says why in one line instead of staying silent.
     """
+    st.markdown(
+        "<hr class='sec-rule'><div class='sec-title'>US stocks (EIA)</div>", unsafe_allow_html=True
+    )
     try:
         data = services.load_storage()
-    except eia.EiaError:
+    except eia.EiaError as error:
+        st.caption(f"📦 Not shown: {error}")
         return
     units = {s.key: s.unit for s in eia.SERIES}
-    table = storage_stats.latest_table(data, units)
-    if table.empty:
+    current = storage_stats.as_of_table(data, units, as_of)
+    if current.empty:
+        st.caption("📦 No EIA reading on or before this date.")
         return
+    st.markdown(f"**{_fmt_date(as_of)}** · {_stocks_label(current)}, million bbl (gas in Bcf)")
+    st.markdown(tables.stocks_html(current), unsafe_allow_html=True)
+    earlier = storage_stats.as_of_table(data, units, baseline) if baseline is not None else pd.DataFrame()
+    if earlier.empty:
+        return
+    st.markdown(f"**{_fmt_date(baseline)}** · {_stocks_label(earlier)}, million bbl (gas in Bcf)")
+    st.markdown(tables.stocks_html(earlier), unsafe_allow_html=True)
+    st.markdown(f"**Change** · {_fmt_date(as_of)} vs {_fmt_date(baseline)}, stocks")
     st.markdown(
-        f"**US stocks (EIA)** · week ending {table['Week ending'].max():%d %b %Y}"
+        tables.stocks_html(storage_stats.difference(current, earlier), columns=tables.STOCK_CHANGE_COLUMNS),
+        unsafe_allow_html=True,
     )
-    st.markdown(tables.stocks_html(table), unsafe_allow_html=True)
 
 
 def storage_tab(frame: pd.DataFrame, filters: Filters) -> None:

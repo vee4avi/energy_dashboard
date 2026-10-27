@@ -31,8 +31,9 @@ class Series:
 
 SERIES: tuple[Series, ...] = (
     Series("Crude (commercial)", "WCESTUS1", "petroleum/stoc/wstk", "mb", 1000),
-    Series("Cushing crude", "W_EPC0_SAX_YCUOK_MBBL", "petroleum/stoc/wstk", "mb", 1000),
     Series("SPR", "WCSSTUS1", "petroleum/stoc/wstk", "mb", 1000),
+    Series("Cushing crude", "W_EPC0_SAX_YCUOK_MBBL", "petroleum/stoc/wstk", "mb", 1000),
+    # Total gasoline (finished motor gasoline plus blending components)
     Series("Gasoline", "WGTSTUS1", "petroleum/stoc/wstk", "mb", 1000),
     Series("Distillate", "WDISTUS1", "petroleum/stoc/wstk", "mb", 1000),
     Series("Jet fuel", "WKJSTUS1", "petroleum/stoc/wstk", "mb", 1000),
