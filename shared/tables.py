@@ -233,6 +233,10 @@ STOCK_COLUMNS = (
     ("5y avg", "{:,.1f}", True, "5y avg"), ("vs 5y avg %", "{:+,.1f}%", False, "chg %"),
     ("5y high", "{:,.1f}", False, "5y high"), ("5y low", "{:,.1f}", False, "5y low"),
 )
+# Absolute levels are left plain; shading is for the moves and the percentage gaps.
+STOCK_PLAIN_COLUMNS = frozenset(
+    {"Level", "1y avg", "1y high", "1y low", "5y avg", "5y high", "5y low", "Change"}
+)
 # The change in level between the two dates, and the same move in percent.
 STOCK_CHANGE_COLUMNS = (
     ("Change", "{:+,.1f}", False, "Δ"), ("Change %", "{:+,.1f}%", False, "Δ%"),
@@ -307,6 +311,9 @@ def stocks_html(
             if pct_name is not None and pd.notna(row[pct_name]):
                 text += f" ({delta_pct(row[pct_name])})"
                 shade_name, shade_value = pct_name, row[pct_name]
+            if name in STOCK_PLAIN_COLUMNS:  # absolute values carry no shading
+                cells.append(f'<td class="{klass}">{text}</td>')
+                continue
             top = limits.get(_stock_group(shade_name, row["Unit"])) or 1.0
             rgba = theme.STOCK_CMAP(min(abs(float(shade_value)) / top, 1.0))
             cells.append(
