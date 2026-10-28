@@ -222,15 +222,22 @@ def history_html(table: pd.DataFrame, pct: bool = False) -> str:
 # --------------------------------------------------------------------------
 # Compact EIA stocks table
 # --------------------------------------------------------------------------
+# (column, number format, starts a new block, header text). A block break draws a vertical line.
 STOCK_COLUMNS = (
-    ("Level", "{:,.1f}"), ("Week change", "{:+,.1f}"), ("vs 5-yr avg", "{:+,.1f}"),
-    ("vs 5-yr avg %", "{:+,.1f}%"), ("Year on year", "{:+,.1f}"),
+    ("Level", "{:,.1f}", False, "Level"), ("Week change", "{:+,.1f}", False, "Week chg"),
+    ("YoY change", "{:+,.1f}", False, "YoY chg"),
+    ("vs 1y avg %", "{:+,.1f}%", True, "1y avg (% chg)"),
+    ("vs 5y avg %", "{:+,.1f}%", False, "5y avg (% chg)"),
+    ("Hist. high", "{:,.1f}", True, "Hist. high"), ("Hist. low", "{:,.1f}", False, "Hist. low"),
 )
 # The change between two dates: every number is a difference, so every one is signed.
+# The % columns change in percentage points.
 STOCK_CHANGE_COLUMNS = (
-    ("Level", "{:+,.1f}"), ("vs 5-yr avg", "{:+,.1f}"),
-    ("vs 5-yr avg %", "{:+,.1f}"), ("Year on year", "{:+,.1f}"),
+    ("Level", "{:+,.1f}", False, "Level"), ("YoY change", "{:+,.1f}", False, "YoY chg"),
+    ("vs 1y avg %", "{:+,.1f}", True, "1y avg (pp)"), ("vs 5y avg %", "{:+,.1f}", False, "5y avg (pp)"),
 )
+STOCK_CELL_MIN_PX = 74
+STOCK_PRODUCT_PX = 140
 
 
 def _stock_group(column: str, unit: str) -> tuple[str, str]:
@@ -256,32 +263,31 @@ def stock_limits(*frames: pd.DataFrame | None) -> dict[tuple[str, str], float]:
 
 def stocks_html(
     table: pd.DataFrame,
-    max_width: int | None = TABLE_MAX_PX,
+    max_width: int | None = None,
     columns: tuple = STOCK_COLUMNS,
     limits: dict | None = None,
 ) -> str:
-    """Latest stocks, one row per series, in the same look as the position tables.
+    """Stocks, one row per series, in the same look as the position tables.
 
-    ``table`` is analytics.storage.latest_table(): Series, Unit, then the numbers.
-    Pass ``limits`` (see stock_limits) to share one shading scale across tables.
+    ``table`` comes from analytics.storage.as_of_table(): Series, Unit, then the numbers.
+    Pass ``limits`` (see stock_limits) to share one shading scale across tables. Gas is
+    in Bcf and says so in its row label; the oil rows are in mbbls (see the heading).
     """
     if table is None or table.empty:
         return ""
     limits = limits if limits is not None else stock_limits(table)
-    unit_text = {"mb": "mbbls", "bcf": "Bcf"}
-    head = '<th class="corner">Series</th><th class="sub">Unit</th>' + "".join(
-        f'<th class="sub{" gstart" if i == 0 else ""}">{html.escape(name)}</th>'
-        for i, (name, _) in enumerate(columns)
+    head = '<th class="corner">Series</th>' + "".join(
+        f'<th class="sub{" gstart" if i == 0 or column[2] else ""}" style="white-space:normal">'
+        f"{html.escape(column[3]).replace(' (', '<br>(')}</th>"
+        for i, column in enumerate(columns)
     )
     rows = []
     for _, row in table.iterrows():
-        cells = [
-            f'<th class="prod">{html.escape(str(row["Series"]))}</th>',
-            f'<td class="na" style="text-align:left">{html.escape(unit_text.get(row["Unit"], str(row["Unit"])))}</td>',
-        ]
-        for i, (name, fmt) in enumerate(columns):
+        label = str(row["Series"]) + (" (Bcf)" if row["Unit"] == "bcf" else "")
+        cells = [f'<th class="prod">{html.escape(label)}</th>']
+        for i, (name, fmt, block, _) in enumerate(columns):
             value = row[name]
-            klass = "gstart" if i == 0 else ""
+            klass = "gstart" if i == 0 or block else ""
             if pd.isna(value):
                 cells.append(f'<td class="{klass} na">—</td>')
                 continue
@@ -292,8 +298,8 @@ def stocks_html(
                 f'<td class="{klass}" style="background:{to_hex(rgba)};color:{_text_colour(rgba)}">{text}</td>'
             )
         rows.append("<tr>" + "".join(cells) + "</tr>")
-    widths = f'<colgroup><col style="width:{PRODUCT_PX}px"><col style="width:90px">{"<col>" * len(columns)}</colgroup>'
-    style = f"min-width:{PRODUCT_PX + 90 + CELL_MIN_PX * len(columns)}px"
+    widths = f'<colgroup><col style="width:{STOCK_PRODUCT_PX}px">{"<col>" * len(columns)}</colgroup>'
+    style = f"min-width:{STOCK_PRODUCT_PX + STOCK_CELL_MIN_PX * len(columns)}px"
     if max_width:
         style += f";max-width:{max_width}px"
     return (

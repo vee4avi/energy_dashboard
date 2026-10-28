@@ -1,4 +1,4 @@
-"""Seasonal context for weekly stocks: change, 5-year range, year on year."""
+"""Context for weekly stocks: changes, 1- and 5-year averages, historical high and low."""
 
 from __future__ import annotations
 
@@ -34,6 +34,12 @@ def seasonal(values: pd.Series) -> pd.DataFrame:
     frame["yoy"] = frame["value"] - frame["value"].reindex(frame.index - pd.Timedelta(days=364)).to_numpy()
     frame["vs_avg"] = frame["value"] - frame["avg5"]
     frame["vs_avg_pct"] = frame["vs_avg"] / frame["avg5"] * 100
+    # Trailing 52 weeks, this one included: a plain one-year average, not seasonal.
+    frame["avg1"] = frame["value"].rolling(52, min_periods=26).mean()
+    frame["vs_avg1_pct"] = (frame["value"] - frame["avg1"]) / frame["avg1"] * 100
+    # Highest and lowest reading in everything loaded up to and including this week.
+    frame["high"] = frame["value"].cummax()
+    frame["low"] = frame["value"].cummin()
     return frame
 
 
@@ -56,9 +62,10 @@ def as_of_table(long_frame: pd.DataFrame, units: dict[str, str], date=None) -> p
         last = stats.iloc[-1]
         rows.append({
             "Series": name, "Unit": units.get(name, ""), "Week ending": stats.index[-1],
-            "Level": last["value"], "Week change": last["wow"],
-            "vs 5-yr avg": last["vs_avg"], "vs 5-yr avg %": last["vs_avg_pct"],
-            "Year on year": last["yoy"],
+            "Level": last["value"], "Week change": last["wow"], "YoY change": last["yoy"],
+            "1y avg": last["avg1"], "vs 1y avg %": last["vs_avg1_pct"],
+            "5y avg": last["avg5"], "vs 5y avg %": last["vs_avg_pct"],
+            "Hist. high": last["high"], "Hist. low": last["low"],
         })
     return pd.DataFrame(rows)
 
@@ -68,7 +75,7 @@ def latest_table(long_frame: pd.DataFrame, units: dict[str, str]) -> pd.DataFram
     return as_of_table(long_frame, units)
 
 
-CHANGE_COLUMNS = ["Level", "vs 5-yr avg", "vs 5-yr avg %", "Year on year"]
+CHANGE_COLUMNS = ["Level", "YoY change", "vs 1y avg %", "vs 5y avg %"]
 
 
 def difference(current: pd.DataFrame, earlier: pd.DataFrame) -> pd.DataFrame:

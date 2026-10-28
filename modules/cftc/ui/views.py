@@ -714,7 +714,7 @@ def _overlay_figure(name: str, unit: str, merged: pd.DataFrame, product: str, ca
 
 
 def _stocks_label(frame: pd.DataFrame) -> str:
-    return f"EIA week ending {frame['Week ending'].max():%d %b %Y}"
+    return f"Week ending {frame['Week ending'].max():%d %b %Y}"
 
 
 def storage_summary(as_of, baseline) -> None:
@@ -745,7 +745,7 @@ def storage_summary(as_of, baseline) -> None:
     st.markdown(f"**{_stocks_label(earlier)}**, mbbls (gas in Bcf)")
     st.markdown(tables.stocks_html(earlier, limits=scale), unsafe_allow_html=True)
     st.markdown(
-        f"**Change** · EIA week ending {current['Week ending'].max():%d %b %Y} vs "
+        f"**Change** · week ending {current['Week ending'].max():%d %b %Y} vs "
         f"{earlier['Week ending'].max():%d %b %Y}, mbbls (gas in Bcf)"
     )
     moves = storage_stats.difference(current, earlier)
@@ -780,8 +780,10 @@ def storage_tab(frame: pd.DataFrame, filters: Filters) -> None:
     st.dataframe(
         shown, hide_index=True, **theme.wide(),
         column_config={
-            "Level": signed("%.1f"), "Week change": signed("%+.1f"), "vs 5-yr avg": signed("%+.1f"),
-            "vs 5-yr avg %": signed("%+.1f%%"), "Year on year": signed("%+.1f"),
+            "Level": signed("%.1f"), "Week change": signed("%+.1f"), "YoY change": signed("%+.1f"),
+            "1y avg": signed("%.1f"), "vs 1y avg %": signed("%+.1f%%"),
+            "5y avg": signed("%.1f"), "vs 5y avg %": signed("%+.1f%%"),
+            "Hist. high": signed("%.1f"), "Hist. low": signed("%.1f"),
         },
     )
 

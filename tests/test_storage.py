@@ -82,7 +82,7 @@ def test_latest_table_and_overlay() -> None:
     data = demo.storage()
     table = storage.latest_table(data, {s.key: s.unit for s in eia.SERIES})
     assert list(table["Series"]) == [s.key for s in eia.SERIES]
-    assert table["Level"].notna().all() and table["vs 5-yr avg %"].notna().all()
+    assert table["Level"].notna().all() and table["vs 5y avg %"].notna().all()
 
     assert list(table["Series"]) == ["Crude (commercial)", "SPR", "Cushing crude", "Gasoline",
                                      "Distillate", "Jet fuel", "Natural gas"]
@@ -112,7 +112,7 @@ def test_compact_table_and_news_markup() -> None:
     table = storage.latest_table(demo.storage(), {s.key: s.unit for s in eia.SERIES})
     markup = tables.stocks_html(table)
     assert "\n" not in markup and markup.count("<tr>") == 1 + len(table)
-    assert "Crude (commercial)" in markup and "mbbls" in markup and "Bcf" in markup
+    assert "Crude (commercial)" in markup and "(Bcf)" in markup
     assert markup.count("background:#") == len(table) * len(tables.STOCK_COLUMNS), "every number is shaded"
     limits = tables.stock_limits(table)
     assert limits[("Level", "mb")] == table[table["Unit"].eq("mb")]["Level"].abs().max()
@@ -133,7 +133,7 @@ def test_tab_runs() -> None:
     at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=90).run()
     assert not at.exception, [e.value for e in at.exception]
     text = "\n".join(m.value for m in at.markdown)
-    assert "US stocks (EIA)" in text and "sec-rule" in text and text.count("EIA week ending") >= 2
+    assert "US stocks (EIA)" in text and "sec-rule" in text and text.count("Week ending") >= 2
     for series in at.selectbox(key="storage_series").options:
         at.selectbox(key="storage_series").set_value(series).run()
         assert not at.exception, (series, [e.value for e in at.exception])
