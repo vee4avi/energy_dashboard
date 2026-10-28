@@ -751,7 +751,7 @@ def storage_summary(as_of, baseline) -> None:
     moves = storage_stats.difference(current, earlier)
     st.markdown(
         tables.stocks_html(
-            moves, max_width=tables.STOCK_PRODUCT_PX + tables.STOCK_COMBO_PX + 20, columns=tables.STOCK_CHANGE_COLUMNS, limits=tables.stock_limits(moves)
+            moves, max_width=tables.STOCK_PRODUCT_PX + 2 * tables.STOCK_CELL_MIN_PX + 40, columns=tables.STOCK_CHANGE_COLUMNS, limits=tables.stock_limits(moves)
         ),
         unsafe_allow_html=True,
     )
