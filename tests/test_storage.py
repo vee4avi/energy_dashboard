@@ -117,7 +117,7 @@ def test_compact_table_and_news_markup() -> None:
     assert "\n" not in markup and markup.count("<tr>") == 1 + len(table)
     assert "Crude (commercial)" in markup and "(Bcf)" in markup
     assert markup.count("background:#") == len(table) * len(tables.STOCK_COLUMNS), "every number is shaded"
-    assert "1y avg (Δ%)" in markup and "<br>" not in markup and "(Δ " not in markup, "average and its % gap share a cell"
+    assert "<th class=\"sub gstart\">1y avg</th><th class=\"sub\">chg %</th>" in markup and "<br>" not in markup and "(Δ " not in markup, "average and its % gap share a cell"
     assert tables.delta_pct(-8.24) == "-8.2%" and tables.delta_pct(0.01) == "+0.0%"
     limits = tables.stock_limits(table)
     assert limits[("Level", "mb")] == table[table["Unit"].eq("mb")]["Level"].abs().max()
