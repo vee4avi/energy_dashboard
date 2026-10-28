@@ -233,8 +233,10 @@ STOCK_COLUMNS = (
     ("5y avg", "{:,.1f}", True, "5y avg"), ("vs 5y avg %", "{:+,.1f}%", False, "chg %"),
     ("5y high", "{:,.1f}", False, "5y high"), ("5y low", "{:,.1f}", False, "5y low"),
 )
-# The change in level between the two dates, with the percentage beside it.
-STOCK_CHANGE_COLUMNS = (("Change", "{:+,.1f}", False, "Change (Δ%)", "Change %"),)
+# The change in level between the two dates, and the same move in percent.
+STOCK_CHANGE_COLUMNS = (
+    ("Change", "{:+,.1f}", False, "Δ"), ("Change %", "{:+,.1f}%", False, "Δ%"),
+)
 
 
 def delta_pct(value: float) -> str:
