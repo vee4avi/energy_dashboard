@@ -116,7 +116,9 @@ def test_compact_table_and_news_markup() -> None:
     markup = tables.stocks_html(table)
     assert "\n" not in markup and markup.count("<tr>") == 1 + len(table)
     assert "Crude (commercial)" in markup and "(Bcf)" in markup
-    assert markup.count("background:#") == len(table) * len(tables.STOCK_COLUMNS), "every number is shaded"
+    shaded = [c for c in tables.STOCK_COLUMNS if c[0] not in tables.STOCK_PLAIN_COLUMNS]
+    assert markup.count("background:#") == len(table) * len(shaded), "only moves and % gaps are shaded"
+    assert {c[0] for c in shaded} == {"Week change", "YoY change", "vs 1y avg %", "vs 5y avg %"}
     assert "<th class=\"sub gstart\">1y avg</th><th class=\"sub\">chg %</th>" in markup and "<br>" not in markup and "(Δ " not in markup, "average and its % gap share a cell"
     assert tables.delta_pct(-8.24) == "-8.2%" and tables.delta_pct(0.01) == "+0.0%"
     limits = tables.stock_limits(table)
@@ -124,8 +126,9 @@ def test_compact_table_and_news_markup() -> None:
     assert limits[("Level", "bcf")] != limits[("Level", "mb")], "barrels and Bcf have their own scales"
     assert limits[("Level", "bcf")] > 1000 and limits[("Level", "mb")] < 1000, "oil and gas have their own scales"
     moves = tables.stocks_html(storage.difference(table, table), columns=tables.STOCK_CHANGE_COLUMNS)
-    assert "\n" not in moves and "Week change" not in moves and "+0.0 (+0.0%)" in moves
-    assert moves.count("<th class=\"sub") == 1, "the change table has one column"
+    assert "\n" not in moves and "Week change" not in moves and ">+0.0</td>" in moves and ">+0.0%</td>" in moves
+    assert moves.count("background:#") == len(table), "only the Δ% column is shaded"
+    assert moves.count("<th class=\"sub") == 2 and ">Δ%</th>" in moves, "change table: Change and Δ%"
     news = notes.body_html("## Headlines\n- Oil up [Reuters](https://example.com/a?x=1&y=2) on **supply**\n- $5 move")
     assert '<a href="https://example.com/a?x=1&amp;y=2"' in news and "<strong>supply</strong>" in news
     assert "<p><strong>Headlines</strong></p>" in news and "&#36;5" in news
