@@ -147,30 +147,31 @@ def snapshot_tab(frame: pd.DataFrame, filters: Filters) -> None:
     value_col = filters.value_column
     change_col = "net_pct_oi_chg_base" if pct else "net_chg_base"
 
-    # Headline numbers: one participant at a time, chosen here.
+    # Headline numbers: net position summed across the selected trader categories.
+    # "Total reportable" is already a sum of the others, so it is left out of the sum
+    # unless it is the only category selected.
     if filters.categories:
-        state.ensure_option("kpi_category", filters.categories)
-        primary = st.radio(
-            "Headline participant",
-            options=filters.categories,
-            format_func=lambda key: labels.get(key, key),
-            horizontal=True,
-            key="kpi_category",
-            help="Switches the headline net-position numbers between trader categories.",
+        parts = [c for c in filters.categories if c != "tot_rept"] or list(filters.categories)
+        pooled = summary[summary["category"].isin(parts)]
+        headline = (
+            pooled.groupby("product")
+            .agg(
+                open_interest=("open_interest", "max"),
+                value=(value_col, lambda v: v.sum(min_count=1)),
+                delta=(change_col, lambda v: v.sum(min_count=1)),
+            )
+            .sort_values("open_interest", ascending=False)
+            .reset_index()
         )
-        headline = summary[summary["category"].eq(primary)].sort_values(
-            "open_interest", ascending=False
-        )
-        st.markdown(f"**{labels.get(primary, primary)} — net position**")
+        names = [labels.get(c, c) for c in parts]
+        st.markdown(f"**Total net position** · {' + '.join(names)}")
         for start in range(0, len(headline), KPI_PER_ROW):
             row_columns = st.columns(KPI_PER_ROW)
             for column, row in zip(row_columns, headline.iloc[start : start + KPI_PER_ROW].itertuples()):
-                value = getattr(row, value_col)
-                delta = getattr(row, change_col, float("nan"))
                 column.metric(
                     row.product,
-                    theme.fmt_pct(value) if pct else theme.fmt_int(value),
-                    theme.fmt_signed_pct(delta) if pct else theme.fmt_signed(delta),
+                    theme.fmt_pct(row.value) if pct else theme.fmt_int(row.value),
+                    theme.fmt_signed_pct(row.delta) if pct else theme.fmt_signed(row.delta),
                 )
 
     st.divider()
