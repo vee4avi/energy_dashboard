@@ -74,7 +74,7 @@ def _get(url: str, params: dict) -> dict:
         raise EiaError("EIA returned something that is not JSON.") from None
 
 
-def fetch(api_key: str, start: str = "1982-01-01", specs: tuple[Series, ...] = SERIES) -> pd.DataFrame:
+def fetch(api_key: str, start: str = "2015-01-01", specs: tuple[Series, ...] = SERIES) -> pd.DataFrame:
     """Weekly stocks for every series since ``start`` (one request per data set)."""
     frames = []
     for route in dict.fromkeys(s.route for s in specs):

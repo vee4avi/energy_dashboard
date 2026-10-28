@@ -1,4 +1,4 @@
-"""Context for weekly stocks: changes, 1- and 5-year averages, historical high and low."""
+"""Context for weekly stocks: changes, and the 1-year and 5-year high, low and average."""
 
 from __future__ import annotations
 
@@ -37,9 +37,8 @@ def seasonal(values: pd.Series) -> pd.DataFrame:
     # Trailing 52 weeks, this one included: a plain one-year average, not seasonal.
     frame["avg1"] = frame["value"].rolling(52, min_periods=26).mean()
     frame["vs_avg1_pct"] = (frame["value"] - frame["avg1"]) / frame["avg1"] * 100
-    # Highest and lowest reading in everything loaded up to and including this week.
-    frame["high"] = frame["value"].cummax()
-    frame["low"] = frame["value"].cummin()
+    frame["max1"] = frame["value"].rolling(52, min_periods=26).max()
+    frame["min1"] = frame["value"].rolling(52, min_periods=26).min()
     return frame
 
 
@@ -63,9 +62,10 @@ def as_of_table(long_frame: pd.DataFrame, units: dict[str, str], date=None) -> p
         rows.append({
             "Series": name, "Unit": units.get(name, ""), "Week ending": stats.index[-1],
             "Level": last["value"], "Week change": last["wow"], "YoY change": last["yoy"],
+            "1y high": last["max1"], "1y low": last["min1"],
             "1y avg": last["avg1"], "vs 1y avg %": last["vs_avg1_pct"],
+            "5y high": last["max5"], "5y low": last["min5"],
             "5y avg": last["avg5"], "vs 5y avg %": last["vs_avg_pct"],
-            "Hist. high": last["high"], "Hist. low": last["low"],
         })
     return pd.DataFrame(rows)
 
@@ -75,16 +75,13 @@ def latest_table(long_frame: pd.DataFrame, units: dict[str, str]) -> pd.DataFram
     return as_of_table(long_frame, units)
 
 
-CHANGE_COLUMNS = ["Level", "YoY change", "vs 1y avg %", "vs 5y avg %"]
-
-
 def difference(current: pd.DataFrame, earlier: pd.DataFrame) -> pd.DataFrame:
-    """Current minus earlier for the numbers in ``CHANGE_COLUMNS``, series matched by name."""
+    """How far each level moved between the two dates, in units and in percent."""
     now = current.set_index("Series")
     then = earlier.set_index("Series").reindex(now.index)
     out = now[["Unit"]].copy()
-    for column in CHANGE_COLUMNS:
-        out[column] = now[column] - then[column]
+    out["Change"] = now["Level"] - then["Level"]
+    out["Change %"] = out["Change"] / then["Level"] * 100
     return out.reset_index()
 
 

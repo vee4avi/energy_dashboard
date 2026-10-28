@@ -256,7 +256,7 @@ def _load_storage(key: str, start: str) -> pd.DataFrame:
     return eia.fetch(key, start)
 
 
-def load_storage(start: str = "1982-01-01") -> pd.DataFrame:
+def load_storage(start: str = "2015-01-01") -> pd.DataFrame:
     """Weekly US stocks. Raises ``eia.EiaError`` (safe to show) when unavailable."""
     key = eia_key()
     if not key and not DEMO_MODE:

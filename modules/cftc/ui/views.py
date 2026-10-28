@@ -750,7 +750,9 @@ def storage_summary(as_of, baseline) -> None:
     )
     moves = storage_stats.difference(current, earlier)
     st.markdown(
-        tables.stocks_html(moves, columns=tables.STOCK_CHANGE_COLUMNS, limits=tables.stock_limits(moves)),
+        tables.stocks_html(
+            moves, max_width=380, columns=tables.STOCK_CHANGE_COLUMNS, limits=tables.stock_limits(moves)
+        ),
         unsafe_allow_html=True,
     )
 
@@ -781,9 +783,10 @@ def storage_tab(frame: pd.DataFrame, filters: Filters) -> None:
         shown, hide_index=True, **theme.wide(),
         column_config={
             "Level": signed("%.1f"), "Week change": signed("%+.1f"), "YoY change": signed("%+.1f"),
-            "1y avg": signed("%.1f"), "vs 1y avg %": signed("%+.1f%%"),
-            "5y avg": signed("%.1f"), "vs 5y avg %": signed("%+.1f%%"),
-            "Hist. high": signed("%.1f"), "Hist. low": signed("%.1f"),
+            "1y avg": signed("%.1f"), "vs 1y avg %": signed("Δ %+.1f%%"),
+            "1y high": signed("%.1f"), "1y low": signed("%.1f"),
+            "5y avg": signed("%.1f"), "vs 5y avg %": signed("Δ %+.1f%%"),
+            "5y high": signed("%.1f"), "5y low": signed("%.1f"),
         },
     )
 

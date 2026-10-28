@@ -90,8 +90,11 @@ def test_latest_table_and_overlay() -> None:
     older = storage.as_of_table(data, units, table["Week ending"].max() - pd.Timedelta(days=7))
     assert (older["Week ending"] == table["Week ending"].max() - pd.Timedelta(days=7)).all()
     change = storage.difference(table, older)
-    assert abs(change.loc[0, "Level"] - (table.loc[0, "Level"] - older.loc[0, "Level"])) < 1e-9
-    assert abs(change.loc[0, "Level"] - table.loc[0, "Week change"]) < 1e-9, "one week apart = the weekly change"
+    assert abs(change.loc[0, "Change"] - (table.loc[0, "Level"] - older.loc[0, "Level"])) < 1e-9
+    assert abs(change.loc[0, "Change"] - table.loc[0, "Week change"]) < 1e-9, "one week apart = the weekly change"
+    assert abs(change.loc[0, "Change %"] - change.loc[0, "Change"] / older.loc[0, "Level"] * 100) < 1e-9
+    row = table.iloc[0]
+    assert row["1y low"] <= row["1y avg"] <= row["1y high"] and row["5y low"] <= row["5y avg"] <= row["5y high"]
     assert storage.as_of_table(data, units, "2000-01-01").empty
 
     stocks = data[data["series"].eq("Gasoline")].set_index("period")["value"]
@@ -114,12 +117,15 @@ def test_compact_table_and_news_markup() -> None:
     assert "\n" not in markup and markup.count("<tr>") == 1 + len(table)
     assert "Crude (commercial)" in markup and "(Bcf)" in markup
     assert markup.count("background:#") == len(table) * len(tables.STOCK_COLUMNS), "every number is shaded"
+    assert "1y avg<br>(Δ%)" in markup and "(Δ " in markup, "average and its % gap share a cell"
+    assert tables.delta_pct(-8.24) == "Δ -8.2%" and tables.delta_pct(0.01) == "Δ +0.0%"
     limits = tables.stock_limits(table)
     assert limits[("Level", "mb")] == table[table["Unit"].eq("mb")]["Level"].abs().max()
     assert limits[("Level", "bcf")] != limits[("Level", "mb")], "barrels and Bcf have their own scales"
     assert limits[("Level", "bcf")] > 1000 and limits[("Level", "mb")] < 1000, "oil and gas have their own scales"
     moves = tables.stocks_html(storage.difference(table, table), columns=tables.STOCK_CHANGE_COLUMNS)
-    assert "\n" not in moves and "Week change" not in moves and "+0.0" in moves
+    assert "\n" not in moves and "Week change" not in moves and "+0.0 (Δ +0.0%)" in moves
+    assert moves.count("<th class=\"sub") == 1, "the change table has one column"
     news = notes.body_html("## Headlines\n- Oil up [Reuters](https://example.com/a?x=1&y=2) on **supply**\n- $5 move")
     assert '<a href="https://example.com/a?x=1&amp;y=2"' in news and "<strong>supply</strong>" in news
     assert "<p><strong>Headlines</strong></p>" in news and "&#36;5" in news

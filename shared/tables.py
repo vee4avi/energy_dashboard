@@ -222,22 +222,29 @@ def history_html(table: pd.DataFrame, pct: bool = False) -> str:
 # --------------------------------------------------------------------------
 # Compact EIA stocks table
 # --------------------------------------------------------------------------
-# (column, number format, starts a new block, header text). A block break draws a vertical line.
+# (column, number format, starts a new block, header text[, % column]). A block break
+# draws a vertical line. With a % column the cell shows both, e.g. "394.9 (Δ -8.2%)",
+# and is shaded by the percentage.
 STOCK_COLUMNS = (
     ("Level", "{:,.1f}", False, "Level"), ("Week change", "{:+,.1f}", False, "Week chg"),
     ("YoY change", "{:+,.1f}", False, "YoY chg"),
-    ("vs 1y avg %", "{:+,.1f}%", True, "1y avg (% chg)"),
-    ("vs 5y avg %", "{:+,.1f}%", False, "5y avg (% chg)"),
-    ("Hist. high", "{:,.1f}", True, "Hist. high"), ("Hist. low", "{:,.1f}", False, "Hist. low"),
+    ("1y avg", "{:,.1f}", True, "1y avg (Δ%)", "vs 1y avg %"),
+    ("1y high", "{:,.1f}", False, "1y high"), ("1y low", "{:,.1f}", False, "1y low"),
+    ("5y avg", "{:,.1f}", True, "5y avg (Δ%)", "vs 5y avg %"),
+    ("5y high", "{:,.1f}", False, "5y high"), ("5y low", "{:,.1f}", False, "5y low"),
 )
-# The change between two dates: every number is a difference, so every one is signed.
-# The % columns change in percentage points.
-STOCK_CHANGE_COLUMNS = (
-    ("Level", "{:+,.1f}", False, "Level"), ("YoY change", "{:+,.1f}", False, "YoY chg"),
-    ("vs 1y avg %", "{:+,.1f}", True, "1y avg (pp)"), ("vs 5y avg %", "{:+,.1f}", False, "5y avg (pp)"),
-)
-STOCK_CELL_MIN_PX = 74
-STOCK_PRODUCT_PX = 140
+# The change in level between the two dates, with the percentage beside it.
+STOCK_CHANGE_COLUMNS = (("Change", "{:+,.1f}", False, "Change (Δ%)", "Change %"),)
+
+
+def delta_pct(value: float) -> str:
+    """A percentage change written the same way everywhere: "Δ -8.2%"."""
+    return f"Δ {0.0 if round(float(value), 1) == 0 else float(value):+.1f}%"
+
+
+STOCK_CELL_MIN_PX = 58
+STOCK_PRODUCT_PX = 130
+STOCK_COMBO_PX = 122  # a cell holding a number and its % change
 
 
 def _stock_group(column: str, unit: str) -> tuple[str, str]:
@@ -285,21 +292,33 @@ def stocks_html(
     for _, row in table.iterrows():
         label = str(row["Series"]) + (" (Bcf)" if row["Unit"] == "bcf" else "")
         cells = [f'<th class="prod">{html.escape(label)}</th>']
-        for i, (name, fmt, block, _) in enumerate(columns):
+        for i, column in enumerate(columns):
+            name, fmt, block = column[0], column[1], column[2]
+            pct_name = column[4] if len(column) > 4 else None
             value = row[name]
             klass = "gstart" if i == 0 or block else ""
             if pd.isna(value):
                 cells.append(f'<td class="{klass} na">—</td>')
                 continue
             text = fmt.format(0.0 if round(float(value), 1) == 0 else value)
-            top = limits.get(_stock_group(name, row["Unit"])) or 1.0
-            rgba = theme.STOCK_CMAP(min(abs(float(value)) / top, 1.0))
+            shade_name, shade_value = name, value
+            if pct_name is not None and pd.notna(row[pct_name]):
+                text += f" ({delta_pct(row[pct_name])})"
+                shade_name, shade_value = pct_name, row[pct_name]
+            top = limits.get(_stock_group(shade_name, row["Unit"])) or 1.0
+            rgba = theme.STOCK_CMAP(min(abs(float(shade_value)) / top, 1.0))
             cells.append(
                 f'<td class="{klass}" style="background:{to_hex(rgba)};color:{_text_colour(rgba)}">{text}</td>'
             )
         rows.append("<tr>" + "".join(cells) + "</tr>")
-    widths = f'<colgroup><col style="width:{STOCK_PRODUCT_PX}px">{"<col>" * len(columns)}</colgroup>'
-    style = f"min-width:{STOCK_PRODUCT_PX + STOCK_CELL_MIN_PX * len(columns)}px"
+    cell_px = [STOCK_COMBO_PX if len(column) > 4 else STOCK_CELL_MIN_PX for column in columns]
+    widths = (
+        f'<colgroup><col style="width:{STOCK_PRODUCT_PX}px">'
+        + "".join(f'<col style="width:{px}px">' if len(column) > 4 else "<col>"
+                  for px, column in zip(cell_px, columns))
+        + "</colgroup>"
+    )
+    style = f"min-width:{STOCK_PRODUCT_PX + sum(cell_px)}px"
     if max_width:
         style += f";max-width:{max_width}px"
     return (
