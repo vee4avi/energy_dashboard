@@ -223,14 +223,14 @@ def history_html(table: pd.DataFrame, pct: bool = False) -> str:
 # Compact EIA stocks table
 # --------------------------------------------------------------------------
 # (column, number format, starts a new block, header text[, % column]). A block break
-# draws a vertical line. With a % column the cell shows both, e.g. "394.9 (-8.2%)",
-# and is shaded by the percentage.
+# draws a vertical line. With a % column the cell shows both, e.g. "-0.5 (-0.1%)", and is
+# shaded by the percentage. "chg %" beside an average is how far the level is from it.
 STOCK_COLUMNS = (
     ("Level", "{:,.1f}", False, "Level"), ("Week change", "{:+,.1f}", False, "Week chg"),
     ("YoY change", "{:+,.1f}", False, "YoY chg"),
-    ("1y avg", "{:,.1f}", True, "1y avg (Δ%)", "vs 1y avg %"),
+    ("1y avg", "{:,.1f}", True, "1y avg"), ("vs 1y avg %", "{:+,.1f}%", False, "chg %"),
     ("1y high", "{:,.1f}", False, "1y high"), ("1y low", "{:,.1f}", False, "1y low"),
-    ("5y avg", "{:,.1f}", True, "5y avg (Δ%)", "vs 5y avg %"),
+    ("5y avg", "{:,.1f}", True, "5y avg"), ("vs 5y avg %", "{:+,.1f}%", False, "chg %"),
     ("5y high", "{:,.1f}", False, "5y high"), ("5y low", "{:,.1f}", False, "5y low"),
 )
 # The change in level between the two dates, with the percentage beside it.
