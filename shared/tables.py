@@ -223,7 +223,7 @@ def history_html(table: pd.DataFrame, pct: bool = False) -> str:
 # Compact EIA stocks table
 # --------------------------------------------------------------------------
 # (column, number format, starts a new block, header text[, % column]). A block break
-# draws a vertical line. With a % column the cell shows both, e.g. "394.9 (Δ -8.2%)",
+# draws a vertical line. With a % column the cell shows both, e.g. "394.9 (-8.2%)",
 # and is shaded by the percentage.
 STOCK_COLUMNS = (
     ("Level", "{:,.1f}", False, "Level"), ("Week change", "{:+,.1f}", False, "Week chg"),
@@ -238,11 +238,11 @@ STOCK_CHANGE_COLUMNS = (("Change", "{:+,.1f}", False, "Change (Δ%)", "Change %"
 
 
 def delta_pct(value: float) -> str:
-    """A percentage change written the same way everywhere: "Δ -8.2%"."""
-    return f"Δ {0.0 if round(float(value), 1) == 0 else float(value):+.1f}%"
+    """A percentage change written the same way everywhere: "-8.2%"."""
+    return f"{0.0 if round(float(value), 1) == 0 else float(value):+.1f}%"
 
 
-STOCK_CELL_MIN_PX = 58
+STOCK_CELL_MIN_PX = 64
 STOCK_PRODUCT_PX = 130
 STOCK_COMBO_PX = 122  # a cell holding a number and its % change
 
@@ -284,8 +284,8 @@ def stocks_html(
         return ""
     limits = limits if limits is not None else stock_limits(table)
     head = '<th class="corner">Series</th>' + "".join(
-        f'<th class="sub{" gstart" if i == 0 or column[2] else ""}" style="white-space:normal">'
-        f"{html.escape(column[3]).replace(' (', '<br>(')}</th>"
+        f'<th class="sub{" gstart" if i == 0 or column[2] else ""}">'
+        f"{html.escape(column[3])}</th>"
         for i, column in enumerate(columns)
     )
     rows = []

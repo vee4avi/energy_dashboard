@@ -117,14 +117,14 @@ def test_compact_table_and_news_markup() -> None:
     assert "\n" not in markup and markup.count("<tr>") == 1 + len(table)
     assert "Crude (commercial)" in markup and "(Bcf)" in markup
     assert markup.count("background:#") == len(table) * len(tables.STOCK_COLUMNS), "every number is shaded"
-    assert "1y avg<br>(Δ%)" in markup and "(Δ " in markup, "average and its % gap share a cell"
-    assert tables.delta_pct(-8.24) == "Δ -8.2%" and tables.delta_pct(0.01) == "Δ +0.0%"
+    assert "1y avg (Δ%)" in markup and "<br>" not in markup and "(Δ " not in markup, "average and its % gap share a cell"
+    assert tables.delta_pct(-8.24) == "-8.2%" and tables.delta_pct(0.01) == "+0.0%"
     limits = tables.stock_limits(table)
     assert limits[("Level", "mb")] == table[table["Unit"].eq("mb")]["Level"].abs().max()
     assert limits[("Level", "bcf")] != limits[("Level", "mb")], "barrels and Bcf have their own scales"
     assert limits[("Level", "bcf")] > 1000 and limits[("Level", "mb")] < 1000, "oil and gas have their own scales"
     moves = tables.stocks_html(storage.difference(table, table), columns=tables.STOCK_CHANGE_COLUMNS)
-    assert "\n" not in moves and "Week change" not in moves and "+0.0 (Δ +0.0%)" in moves
+    assert "\n" not in moves and "Week change" not in moves and "+0.0 (+0.0%)" in moves
     assert moves.count("<th class=\"sub") == 1, "the change table has one column"
     news = notes.body_html("## Headlines\n- Oil up [Reuters](https://example.com/a?x=1&y=2) on **supply**\n- $5 move")
     assert '<a href="https://example.com/a?x=1&amp;y=2"' in news and "<strong>supply</strong>" in news

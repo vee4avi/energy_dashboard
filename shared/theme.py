@@ -261,7 +261,7 @@ PAGE_CSS = f"""
 .cot-note {{ font-size: {TEXT_PX}px; line-height: 1.5; margin-bottom: 0.8rem; }}
 .cot-note-title {{ font-size: {HEAD_PX}px; font-weight: 700; line-height: 1.3; margin: 0.2rem 0 0.7rem 0; }}
 .sec-rule {{ border: 0; border-top: 1px solid rgba(128,128,128,.4); margin: 0 0 1.1rem 0; }}
-.sec-gap {{ height: calc(1.6rem + 5cm); }}
+.sec-gap {{ height: calc(1.6rem + 2cm); }}
 .sec-title {{ font-size: 20px; font-weight: 700; line-height: 1.3; margin: 0 0 0.6rem 0; }}
 .cot-note a {{ color: inherit; text-decoration: underline; }}
 .cot-grid {{ display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.7rem; align-items: stretch; }}
