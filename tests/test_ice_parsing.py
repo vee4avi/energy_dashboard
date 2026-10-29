@@ -146,7 +146,128 @@ def test_pdf_round_trip() -> None:
     print("pdf round-trip: ok")
 
 
+# --------------------------------------------------------------------------
+# ICE's yearly history file (ice_data/COTHist*.csv)
+# --------------------------------------------------------------------------
+FIXTURES = Path(__file__).resolve().parent / "fixtures"
+
+
+def test_history_csv() -> None:
+    import pandas as pd
+
+    raw = pd.read_csv(FIXTURES / "ice_cothist_sample.csv", encoding="utf-8-sig", low_memory=False)
+    fut = ice.parse_history_csv(raw, "futures_only")
+    both = ice.parse_history_csv(raw, "combined")
+    assert set(fut["product"]) == {"Brent (ICE)", "Gasoil (ICE)", "Dubai 1st Line (ICE)"}
+    assert set(both["product"]) == {"Brent (ICE)", "Gasoil (ICE)"}, "Dubai is futures only"
+
+    def cell(frame, product, date, category, side):
+        row = frame[frame["product"].eq(product) & frame["report_date"].eq(pd.Timestamp(date))
+                    & frame["category"].eq(category)]
+        return int(row[side].iloc[0])
+
+    # Figures as shown in the dashboard for 20 Oct 2026 (futures only), read from ICE's PDF.
+    assert cell(fut, "Brent (ICE)", "2026-10-20", "m_money", "long") == 328_285
+    assert cell(fut, "Brent (ICE)", "2026-10-20", "m_money", "short") == 106_941
+    assert cell(fut, "Brent (ICE)", "2026-10-20", "prod_merc", "short") == 1_285_794
+    assert cell(fut, "Gasoil (ICE)", "2026-10-20", "swap", "long") == 253_569
+    assert cell(both, "Brent (ICE)", "2026-10-20", "m_money", "long") == 346_663
+    assert cell(fut, "Brent (ICE)", "2026-10-13", "m_money", "long") == 314_487, "the week that was missing"
+
+    # Every reportable leg plus non-reportable adds up to open interest, on both sides.
+    for frame in (fut, both):
+        legs = frame[frame["category"].ne("tot_rept")].fillna({"spread": 0})
+        sums = legs.groupby(["report_date", "product"]).apply(
+            lambda g: (g["long"].sum() + g["spread"].sum(), g["short"].sum() + g["spread"].sum(),
+                       g["open_interest"].iloc[0])
+        )
+        assert all(lng == oi and sht == oi for lng, sht, oi in sums), "legs must add up to OI"
+    print("history csv: ok")
+
+
+def test_local_files_come_first_and_gaps_are_fetched() -> None:
+    import datetime as dt
+
+    import pandas as pd
+
+    saved = (ice.LOCAL_DIR, ice.latest_available, ice.fetch_report, ice.fetch_year)
+    fetched: list[dt.date] = []
+
+    def fake_fetch(product, basis, date, use_cache=True):
+        fetched.append(date)
+        weeks = [pd.Timestamp(date) - pd.Timedelta(weeks=k) for k in range(5)]
+        rows = []
+        for week in weeks:
+            for category, sides in ice.LEG_ORDER:
+                rows.append({"report_date": week, "contract_code": product.code, "market_name": product.market_name,
+                             "contract_name": product.product, "exchange": ice.EXCHANGE, "product": product.product,
+                             "category": category, "open_interest": 1, "long": 1, "short": 1, "spread": pd.NA})
+        return pd.DataFrame(rows)
+
+    try:
+        ice.LOCAL_DIR = FIXTURES
+        ice.fetch_year = lambda year, use_cache=True: pd.DataFrame()  # no yearly download
+        ice.latest_available = lambda product, basis, today=None: dt.date(2026, 10, 27)
+        ice.fetch_report = fake_fetch
+        history = ice.load_history(["ICE-B", "ICE-D"], "futures_only", dt.date(2026, 9, 1))
+        brent = history[history["product"].eq("Brent (ICE)") & history["category"].eq("m_money")]
+        dates = set(brent["report_date"].dt.date)
+        assert dt.date(2026, 10, 27) in dates, "a newer week comes from the PDF"
+        assert int(brent[brent["report_date"].eq("2026-10-20")]["long"].iloc[0]) == 328_285, "local file wins"
+        expected = {dt.date(2026, 9, 1) + dt.timedelta(weeks=k) for k in range(9)}
+        assert expected <= dates, "every Tuesday from the start date is filled"
+        assert fetched[0] == dt.date(2026, 10, 27) and len(fetched) <= 3, fetched
+        assert not history[history["product"].eq("Dubai 1st Line (ICE)")].empty, "Dubai comes from the file alone"
+    finally:
+        ice.LOCAL_DIR, ice.latest_available, ice.fetch_report, ice.fetch_year = saved
+    print("local first, gaps fetched: ok")
+
+
+def test_yearly_download_fills_history_before_pdfs() -> None:
+    import datetime as dt
+    import tempfile
+
+
+    sample = (FIXTURES / "ice_cothist_sample.csv").read_bytes()
+    requested: list[str] = []
+
+    class Reply:
+        def __init__(self, code, content=b""):
+            self.status_code, self.content = code, content
+
+    class Session:
+        def get(self, url, timeout=None):
+            requested.append(url)
+            return Reply(200, sample) if url.endswith("COTHist2026.csv") else Reply(404)
+
+    saved = (ice.LOCAL_DIR, ice.CACHE_DIR, ice._SESSION, ice.latest_available)
+    try:
+        with tempfile.TemporaryDirectory() as tmp:
+            ice.LOCAL_DIR = Path(tmp) / "none"
+            ice.CACHE_DIR = Path(tmp) / "cache"
+            ice._SESSION = Session()
+            ice.latest_available = lambda *a, **k: None  # no PDFs needed
+            history = ice.load_history(["ICE-B"], "combined", dt.date(2025, 6, 1))
+            assert "https://www.ice.com/publicdocs/futures/COTHist2026.csv" in requested
+            assert "https://www.ice.com/publicdocs/futures/COTHist2025.csv" in requested
+            mm = history[history["category"].eq("m_money")]
+            assert int(mm[mm["report_date"].eq("2026-10-20")]["long"].iloc[0]) == 346_663
+            assert (Path(tmp) / "cache" / "COTHist2026.csv").exists(), "the download is kept"
+
+            requested.clear()  # within the refresh window nothing is downloaded again
+            ice.fetch_year(2026)
+            assert requested == []
+            catalog = ice.catalog("combined")
+            assert set(catalog["product"]) == {"Brent (ICE)", "Gasoil (ICE)"}
+    finally:
+        ice.LOCAL_DIR, ice.CACHE_DIR, ice._SESSION, ice.latest_available = saved
+    print("yearly download: ok")
+
+
 if __name__ == "__main__":
+    test_history_csv()
+    test_local_files_come_first_and_gaps_are_fetched()
+    test_yearly_download_fills_history_before_pdfs()
     test_parses_only_position_rows()
     test_legs_match_the_published_percentages()
     test_derived_total_reportable()

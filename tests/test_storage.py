@@ -135,6 +135,30 @@ def test_compact_table_and_news_markup() -> None:
     print("compact table and news: ok")
 
 
+def test_history_table() -> None:
+    from shared import tables
+
+    data = demo.storage()
+    series = data[data["series"].eq("Gasoline")].set_index("period")["value"]
+    table = storage.history_table(series)
+    assert table.index.is_monotonic_decreasing, "newest week first"
+    assert [g for g, _ in table.columns[:3]] == ["Stocks"] * 3
+    assert list(table.columns.get_level_values(1)) == [
+        "Level", "Week chg", "YoY chg", "Avg", "chg %", "High", "Low", "Avg", "chg %", "High", "Low"]
+    newest, previous = table.index[0], table.index[1]
+    assert abs(table.loc[newest, ("Stocks", "Week chg")]
+               - (table.loc[newest, ("Stocks", "Level")] - table.loc[previous, ("Stocks", "Level")])) < 1e-9
+    snapshot = storage.as_of_table(data, {"Gasoline": "mb"})
+    assert abs(snapshot.loc[0, "5y avg"] - table.loc[newest, ("5-year", "Avg")]) < 1e-9, "same numbers as Snapshot"
+    markup = tables.stocks_history_html(table.head(4))
+    assert "\n" not in markup and markup.count("<tr>") == 2 + 4
+    assert 'class="up' in markup or 'class="down' in markup
+    assert tables._stock_history_cell(-1.26, "chg %") == ("-1.3%", "down")
+    assert tables._stock_history_cell(215.04, "Level") == ("215.0", "")
+    assert tables._stock_history_cell(float("nan"), "Avg") == ("", "blank")
+    print("history table: ok")
+
+
 def test_tab_runs() -> None:
     from streamlit.testing.v1 import AppTest
 
@@ -185,6 +209,7 @@ if __name__ == "__main__":
     test_seasonal_stats()
     test_latest_table_and_overlay()
     test_compact_table_and_news_markup()
+    test_history_table()
     test_tab_runs()
     test_tab_asks_for_a_key()
     print("\nall storage tests passed")

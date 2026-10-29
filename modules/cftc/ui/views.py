@@ -774,29 +774,41 @@ def storage_tab(frame: pd.DataFrame, filters: Filters) -> None:
     if not names:
         return empty_state("EIA returned none of the expected series.")
 
-    table = storage_stats.latest_table(data, units)
-    newest = table["Week ending"].max()
-    st.caption(f"Latest EIA reading: week ending {newest:%d %b %Y}. Petroleum in mbbls (million barrels), gas in Bcf.")
-    shown = table.assign(**{"Week ending": table["Week ending"].dt.strftime("%d %b %Y"),
-                            "Unit": table["Unit"].map(eia.UNIT_LABEL)})
-    signed = lambda fmt: st.column_config.NumberColumn(format=fmt)  # noqa: E731
-    st.dataframe(
-        shown, hide_index=True, **theme.wide(),
-        column_config={
-            "Level": signed("%.1f"), "Week change": signed("%+.1f"), "YoY change": signed("%+.1f"),
-            "1y avg": signed("%.1f"), "vs 1y avg %": signed("%+.1f%%"),
-            "1y high": signed("%.1f"), "1y low": signed("%.1f"),
-            "5y avg": signed("%.1f"), "vs 5y avg %": signed("%+.1f%%"),
-            "5y high": signed("%.1f"), "5y low": signed("%.1f"),
-        },
-    )
-
-    controls = st.columns([2, 2, 2, 2])
+    top = st.columns([3, 2, 3])
     state.ensure_option("storage_series", names)
-    name = controls[0].selectbox("Series", names, key="storage_series")
-    view = controls[1].radio("View", ["Seasonal", "With positioning"], horizontal=True, key="storage_view")
+    name = top[0].selectbox("Series", names, key="storage_series")
+    window = top[1].selectbox(
+        "Window", options=list(HISTORY_WINDOWS), index=len(HISTORY_WINDOWS) - 1, key="storage_window"
+    )
     series = data[data["series"].eq(name)].set_index("period")["value"]
     unit = units[name]
+    unit_text = eia.UNIT_LABEL.get(unit, unit)
+
+    history = storage_stats.history_table(series)  # computed on everything, then cut
+    weeks = HISTORY_WINDOWS[window]
+    if weeks:
+        history = history.iloc[:weeks]
+    st.markdown(f"**EIA weekly stocks — {name}**")
+    st.caption(
+        f"Source: EIA  |  {history.index.min():%d %b %Y} – {history.index.max():%d %b %Y}"
+        f"  |  Levels in {unit_text}  |  1-year: last 52 weeks; 5-year: the same week in the five "
+        "years before  |  chg % = level vs that average"
+    )
+    st.markdown(tables.stocks_history_html(history), unsafe_allow_html=True)
+    export = history.copy()
+    export.columns = [" ".join(part for part in column) for column in export.columns]
+    export.index.name = "Week ending"
+    st.download_button(
+        "Download this table as CSV",
+        data=export.to_csv().encode("utf-8"),
+        file_name=f"eia_{name.lower().replace(' ', '_').replace('(', '').replace(')', '')}_{history.index.max():%Y%m%d}.csv",
+        mime="text/csv",
+        key="storage_download",
+    )
+
+    st.markdown("<div style='height:1.2rem'></div>", unsafe_allow_html=True)
+    controls = st.columns([3, 3, 2, 2])
+    view = controls[0].radio("Chart", ["Seasonal", "With positioning"], horizontal=True, key="storage_view")
 
     if view == "Seasonal":
         st.plotly_chart(_seasonal_figure(name, storage_stats.seasonal(series), unit), **theme.wide())
@@ -810,8 +822,8 @@ def storage_tab(frame: pd.DataFrame, filters: Filters) -> None:
         return empty_state("Pick a product and trader category in the sidebar first.")
     state.ensure_option("storage_product", products)
     state.ensure_option("storage_category", present)
-    product = controls[2].selectbox("Product", products, key="storage_product")
-    category = controls[3].selectbox("Trader category", present, format_func=labels.get, key="storage_category")
+    product = controls[1].selectbox("Product", products, key="storage_product")
+    category = controls[2].selectbox("Trader category", present, format_func=labels.get, key="storage_category")
     positions = frame[frame["product"].eq(product) & frame["category"].eq(category)]
     merged = storage_stats.positioning_overlay(series, positions)
     if merged.empty:

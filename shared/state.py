@@ -48,7 +48,7 @@ def ensure_range(key: str, low, high) -> None:
 # keys, which Streamlit does keep, and put back if the widget has lost them.
 _COPY = "_kept__"
 _NOT_WIDGET_STATE = {"app_code"}  # typed secrets are never copied
-_BUTTONS = ("analysis_run", "analysis_download")  # buttons cannot be given a value
+_BUTTONS = ("analysis_run", "analysis_download", "storage_download")  # buttons cannot be given a value
 
 
 def save() -> None:

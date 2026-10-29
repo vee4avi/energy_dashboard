@@ -11,6 +11,13 @@ extras/cot-report-bot/  the Telegram bot and its workflow, for reference (not ru
 tests/
 ```
 
+## ICE data
+
+ICE Brent, Gasoil and Dubai 1st Line come from ICE's yearly history files, downloaded
+automatically (`https://www.ice.com/publicdocs/futures/COTHist2026.csv`, one per year).
+Files placed in the `ice_data` folder are used first; ICE's weekly PDFs fill any week still
+missing. See `ice_data/README.md`.
+
 ## EIA storage
 
 The Storage tab needs a free key from eia.gov/opendata. Set `EIA_API_KEY` in the environment,

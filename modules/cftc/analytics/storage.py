@@ -70,6 +70,25 @@ def as_of_table(long_frame: pd.DataFrame, units: dict[str, str], date=None) -> p
     return pd.DataFrame(rows)
 
 
+HISTORY_GROUPS = (
+    ("Stocks", (("Level", "value"), ("Week chg", "wow"), ("YoY chg", "yoy"))),
+    ("1-year", (("Avg", "avg1"), ("chg %", "vs_avg1_pct"), ("High", "max1"), ("Low", "min1"))),
+    ("5-year", (("Avg", "avg5"), ("chg %", "vs_avg_pct"), ("High", "max5"), ("Low", "min5"))),
+)
+
+
+def history_table(values: pd.Series) -> pd.DataFrame:
+    """One series, every week: dates down the side (newest first), the same measures as the
+    Snapshot tables across, under two-level columns (group, measure)."""
+    stats = seasonal(values)
+    columns = pd.MultiIndex.from_tuples(
+        [(group, label) for group, measures in HISTORY_GROUPS for label, _ in measures]
+    )
+    data = [[row[key] for _, measures in HISTORY_GROUPS for _, key in measures] for _, row in stats.iterrows()]
+    table = pd.DataFrame(data, index=stats.index, columns=columns)
+    return table.sort_index(ascending=False)
+
+
 def latest_table(long_frame: pd.DataFrame, units: dict[str, str]) -> pd.DataFrame:
     """One row per series for its newest week."""
     return as_of_table(long_frame, units)

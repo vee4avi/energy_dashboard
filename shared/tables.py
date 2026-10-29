@@ -334,3 +334,54 @@ def stocks_html(
         f'<div class="cot-wrap"><table class="cot-table" style="{style}">{widths}<thead>'
         f"<tr>{head}</tr></thead><tbody>{''.join(rows)}</tbody></table></div>"
     )
+
+
+# --------------------------------------------------------------------------
+# EIA stocks history (one series, every week), in the history-table style
+# --------------------------------------------------------------------------
+STOCK_HISTORY_MOVES = ("Week chg", "YoY chg", "chg %")  # signed and coloured
+
+
+def _stock_history_cell(value, measure: str) -> tuple[str, str]:
+    if value is None or pd.isna(value):
+        return "", "blank"
+    value = float(value)
+    if measure not in STOCK_HISTORY_MOVES:
+        return f"{value:,.1f}", ""
+    if round(value, 1) == 0:
+        return ("0.0%" if measure.endswith("%") else "0.0"), "flat"
+    text = f"{value:+,.1f}" + ("%" if measure.endswith("%") else "")
+    return text, "up" if value > 0 else "down"
+
+
+def stocks_history_html(table: pd.DataFrame) -> str:
+    """Week endings down the side (newest first), grouped measures across. Same look as
+    history_html: pinned header and date column, changes in green and red."""
+    if table is None or table.empty:
+        return ""
+    columns = list(table.columns)
+    groups: list[tuple[str, int]] = []
+    for group, _ in columns:
+        if groups and groups[-1][0] == group:
+            groups[-1] = (group, groups[-1][1] + 1)
+        else:
+            groups.append((group, 1))
+    starts = {i for i, (g, _) in enumerate(columns) if i == 0 or columns[i - 1][0] != g}
+    head1 = '<th class="hd date" rowspan="2">Week ending</th>' + "".join(
+        f'<th class="hd grp" colspan="{span}">{html.escape(str(group))}</th>' for group, span in groups
+    )
+    head2 = "".join(
+        f'<th class="hd sub{" gs" if i in starts else ""}">{html.escape(measure)}</th>'
+        for i, (_, measure) in enumerate(columns)
+    )
+    body = []
+    for stamp, values in table.iterrows():
+        cells = [f'<th class="d">{pd.Timestamp(stamp):%d %b %Y}</th>']
+        for i, column in enumerate(columns):
+            text, klass = _stock_history_cell(values[column], column[1])
+            cells.append(f'<td class="{klass}{" gs" if i in starts else ""}">{text}</td>')
+        body.append("<tr>" + "".join(cells) + "</tr>")
+    return (
+        '<div class="cot-hist-wrap"><table class="cot-hist"><thead>'
+        f"<tr>{head1}</tr><tr>{head2}</tr></thead><tbody>{''.join(body)}</tbody></table></div>"
+    )
