@@ -56,22 +56,33 @@ def load_cftc_contracts(report: str, basis: str) -> pd.DataFrame:
     return cftc.fetch_contracts(dataset, columns)
 
 
+def load_ice_contracts(basis: str, version: str = ice.VERSION) -> pd.DataFrame:
+    """``version`` is only part of the cache key: a new ICE loader discards old results.
+
+    Never raises: ICE is an optional extra, so a failure just means no rows."""
+    return _ice_catalog(basis, version)[0]
+
+
 @st.cache_data(ttl=settings.CACHE_TTL_SECONDS, show_spinner=False)
-def load_ice_contracts(basis: str) -> pd.DataFrame:
-    """Never raises: ICE is an optional extra, so a failure just means no rows."""
+def _ice_catalog(basis: str, version: str) -> tuple[pd.DataFrame, str]:
     if DEMO_MODE:
-        return demo.ice_contracts()
+        return demo.ice_contracts(), ""
     try:
-        return ice.catalog(_source_basis(basis))
-    except (ice.IceDataError, OSError):
-        return pd.DataFrame()
+        return ice.catalog(_source_basis(basis)), ""
+    except Exception as error:  # noqa: BLE001 - ICE must never take the page down
+        return pd.DataFrame(), f"{type(error).__name__}: {error}"[:300]
+
+
+def ice_problem(basis: str) -> str:
+    """Why ICE contracts could not be listed, in words ("" when they were)."""
+    return _ice_catalog(basis, ice.VERSION)[1]
 
 
 def load_contracts(report: str, basis: str, include_ice: bool = True) -> pd.DataFrame:
     """Every petroleum contract on offer, with its product group and where it came from."""
     catalog = load_cftc_contracts(report, basis)
     if include_ice and ice_supported(report):
-        ice_catalog = load_ice_contracts(basis)
+        ice_catalog = load_ice_contracts(basis, ice.VERSION)
         if not ice_catalog.empty:
             catalog = pd.concat([catalog, ice_catalog], ignore_index=True)
 
@@ -142,7 +153,7 @@ def _load_cftc_positions(
 
 @st.cache_data(ttl=settings.CACHE_TTL_SECONDS, show_spinner=False)
 def _load_ice_positions(
-    basis: str, contract_codes: tuple[str, ...], start: dt.date | None
+    basis: str, contract_codes: tuple[str, ...], start: dt.date | None, version: str = ice.VERSION
 ) -> pd.DataFrame:
     if not contract_codes:
         return pd.DataFrame()
@@ -156,7 +167,7 @@ def _load_ice_positions(
         return frame.reset_index(drop=True)
     try:
         return ice.load_history(list(contract_codes), basis, start)
-    except (ice.IceDataError, OSError):
+    except Exception:  # noqa: BLE001 - ICE must never take the page down
         return pd.DataFrame()
 
 
@@ -169,7 +180,7 @@ def _load_basis(
 ) -> pd.DataFrame:
     frames = [
         _load_cftc_positions(report, basis, cftc_codes, start),
-        _load_ice_positions(basis, ice_codes, start),
+        _load_ice_positions(basis, ice_codes, start, ice.VERSION),
     ]
     frames = [frame for frame in frames if not frame.empty]
     return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
@@ -275,7 +286,7 @@ def start_date_for(window_label: str) -> dt.date | None:
 def clear_cache() -> None:
     for cached in (
         load_cftc_contracts,
-        load_ice_contracts,
+        _ice_catalog,
         _load_cftc_positions,
         _load_ice_positions,
         load_commentary,
