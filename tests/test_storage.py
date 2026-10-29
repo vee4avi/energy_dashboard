@@ -140,22 +140,30 @@ def test_history_table() -> None:
 
     data = demo.storage()
     series = data[data["series"].eq("Gasoline")].set_index("period")["value"]
-    table = storage.history_table(series)
-    assert table.index.is_monotonic_decreasing, "newest week first"
-    assert [g for g, _ in table.columns[:3]] == ["Stocks"] * 3
-    assert list(table.columns.get_level_values(1)) == [
-        "Level", "Week chg", "YoY chg", "Avg", "chg %", "High", "Low", "Avg", "chg %", "High", "Low"]
-    newest, previous = table.index[0], table.index[1]
-    assert abs(table.loc[newest, ("Stocks", "Week chg")]
-               - (table.loc[newest, ("Stocks", "Level")] - table.loc[previous, ("Stocks", "Level")])) < 1e-9
+    one = storage.history_table(series)
+    assert one.index.is_monotonic_decreasing, "newest week first"
+    assert list(one.columns) == [
+        "Level", "Week chg", "YoY chg", "1y Avg", "1y High", "1y Low", "5y Avg", "5y High", "5y Low"]
+    newest, previous = one.index[0], one.index[1]
+    assert abs(one.loc[newest, "Week chg"] - (one.loc[newest, "Level"] - one.loc[previous, "Level"])) < 1e-9
     snapshot = storage.as_of_table(data, {"Gasoline": "mb"})
-    assert abs(snapshot.loc[0, "5y avg"] - table.loc[newest, ("5-year", "Avg")]) < 1e-9, "same numbers as Snapshot"
-    markup = tables.stocks_history_html(table.head(4))
+    assert abs(snapshot.loc[0, "5y avg"] - one.loc[newest, "5y Avg"]) < 1e-9, "same numbers as Snapshot"
+    assert one.loc[newest, "1y Low"] <= one.loc[newest, "1y Avg"] <= one.loc[newest, "1y High"]
+
+    wide = storage.history_wide(data, ["Crude (commercial)", "SPR"], {"SPR": "SPR stocks"})
+    assert list(dict.fromkeys(wide.columns.get_level_values(0))) == ["Crude (commercial)", "SPR stocks"]
+    assert wide.shape[1] == 18 and wide.index.is_monotonic_decreasing
+    assert storage.history_wide(data, []).empty
+
+    markup = tables.stocks_history_html(wide.head(4))
     assert "\n" not in markup and markup.count("<tr>") == 2 + 4
+    assert markup.count('class="hd grp gs2"') == 2, "one header per stock"
+    assert markup.count("gs2") >= 2 + 2 + 2 * 4, "a heavy line before each stock"
+    assert 'class="hd sub gs">1y Avg' in markup and 'class="hd sub gs">5y Avg' in markup
     assert 'class="up' in markup or 'class="down' in markup
-    assert tables._stock_history_cell(-1.26, "chg %") == ("-1.3%", "down")
+    assert tables._stock_history_cell(-1.26, "Week chg") == ("-1.3", "down")
     assert tables._stock_history_cell(215.04, "Level") == ("215.0", "")
-    assert tables._stock_history_cell(float("nan"), "Avg") == ("", "blank")
+    assert tables._stock_history_cell(float("nan"), "1y Avg") == ("", "blank")
     print("history table: ok")
 
 
@@ -167,6 +175,12 @@ def test_tab_runs() -> None:
     assert not at.exception, [e.value for e in at.exception]
     text = "\n".join(m.value for m in at.markdown)
     assert "US stocks (EIA)" in text and "sec-rule" in text and text.count("Week ending") >= 2
+    at.tabs  # the Storage tab: every stock at once, then one, then none
+    every = list(at.multiselect(key="storage_stocks").options)
+    at.multiselect(key="storage_stocks").set_value(every).run()
+    assert not at.exception, [e.value for e in at.exception]
+    at.selectbox(key="storage_window").set_value("1 year").run()
+    assert not at.exception, [e.value for e in at.exception]
     for series in at.selectbox(key="storage_series").options:
         at.selectbox(key="storage_series").set_value(series).run()
         assert not at.exception, (series, [e.value for e in at.exception])

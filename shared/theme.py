@@ -283,6 +283,8 @@ table.cot-hist thead tr:nth-child(2) th.hd {{ top: 26px; z-index: 3; background:
 table.cot-hist thead th.hd.date {{ left: 0; z-index: 4; text-align: left; min-width: 96px; }}
 table.cot-hist thead th.grp {{ border-left: 1px solid rgba(255,255,255,.35) !important; }}
 table.cot-hist th.gs, table.cot-hist td.gs {{ border-left: 1px solid #c4cad1 !important; }}
+table.cot-hist th.gs2, table.cot-hist td.gs2 {{ border-left: 2px solid #5b6672 !important; }}
+table.cot-hist thead th.gs2 {{ border-left: 2px solid rgba(255,255,255,.6) !important; }}
 table.cot-hist thead th.sub.gs {{ border-left: 1px solid rgba(255,255,255,.35) !important; }}
 table.cot-hist tbody th.d {{ position: sticky; left: 0; z-index: 2; background: #fff !important; text-align: left; font-weight: 600; }}
 table.cot-hist tbody tr:nth-child(even) th.d, table.cot-hist tbody tr:nth-child(even) td {{ background: #f4f6f8; }}

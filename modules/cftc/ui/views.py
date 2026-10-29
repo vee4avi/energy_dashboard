@@ -758,6 +758,18 @@ def storage_summary(as_of, baseline) -> None:
     )
 
 
+STORAGE_DEFAULT_STOCKS = ("Crude (commercial)", "SPR")
+STORAGE_TABLE_LABELS = {
+    "Crude (commercial)": "Crude stocks (commercial)",
+    "SPR": "SPR stocks",
+    "Cushing crude": "Cushing crude stocks",
+    "Gasoline": "Gasoline stocks",
+    "Distillate": "Distillate stocks",
+    "Jet fuel": "Jet fuel stocks",
+    "Natural gas": "Natural gas storage (Bcf)",
+}
+
+
 def storage_tab(frame: pd.DataFrame, filters: Filters) -> None:
     """EIA weekly US stocks: latest readings, the seasonal picture, and positioning beside them."""
     try:
@@ -774,41 +786,48 @@ def storage_tab(frame: pd.DataFrame, filters: Filters) -> None:
     if not names:
         return empty_state("EIA returned none of the expected series.")
 
-    top = st.columns([3, 2, 3])
-    state.ensure_option("storage_series", names)
-    name = top[0].selectbox("Series", names, key="storage_series")
+    top = st.columns([5, 2])
+    state.prune_multiselect("storage_stocks", names)
+    chosen = top[0].multiselect(
+        "Stocks", options=names, default=[n for n in STORAGE_DEFAULT_STOCKS if n in names] or names[:2],
+        key="storage_stocks", help="Pick any number; each gets its own block of columns.",
+    )
     window = top[1].selectbox(
         "Window", options=list(HISTORY_WINDOWS), index=len(HISTORY_WINDOWS) - 1, key="storage_window"
     )
-    series = data[data["series"].eq(name)].set_index("period")["value"]
-    unit = units[name]
-    unit_text = eia.UNIT_LABEL.get(unit, unit)
+    if not chosen:
+        return empty_state("Pick at least one stock.")
+    chosen = [n for n in names if n in chosen]  # keep the usual order
 
-    history = storage_stats.history_table(series)  # computed on everything, then cut
+    history = storage_stats.history_wide(data, chosen, STORAGE_TABLE_LABELS)  # full history, then cut
     weeks = HISTORY_WINDOWS[window]
     if weeks:
         history = history.iloc[:weeks]
-    st.markdown(f"**EIA weekly stocks — {name}**")
+    st.markdown("**EIA weekly stocks**")
     st.caption(
         f"Source: EIA  |  {history.index.min():%d %b %Y} – {history.index.max():%d %b %Y}"
-        f"  |  Levels in {unit_text}  |  1-year: last 52 weeks; 5-year: the same week in the five "
-        "years before  |  chg % = level vs that average"
+        "  |  Petroleum in mbbls, natural gas in Bcf  |  1y: last 52 weeks; "
+        "5y: the same week in the five years before"
     )
     st.markdown(tables.stocks_history_html(history), unsafe_allow_html=True)
     export = history.copy()
-    export.columns = [" ".join(part for part in column) for column in export.columns]
+    export.columns = [f"{stock} {measure}" for stock, measure in export.columns]
     export.index.name = "Week ending"
     st.download_button(
         "Download this table as CSV",
         data=export.to_csv().encode("utf-8"),
-        file_name=f"eia_{name.lower().replace(' ', '_').replace('(', '').replace(')', '')}_{history.index.max():%Y%m%d}.csv",
+        file_name=f"eia_stocks_{history.index.max():%Y%m%d}.csv",
         mime="text/csv",
         key="storage_download",
     )
 
     st.markdown("<div style='height:1.2rem'></div>", unsafe_allow_html=True)
-    controls = st.columns([3, 3, 2, 2])
-    view = controls[0].radio("Chart", ["Seasonal", "With positioning"], horizontal=True, key="storage_view")
+    controls = st.columns([2, 3, 2, 2])
+    state.ensure_option("storage_series", chosen)
+    name = controls[0].selectbox("Chart", chosen, key="storage_series")
+    view = controls[1].radio("View", ["Seasonal", "With positioning"], horizontal=True, key="storage_view")
+    series = data[data["series"].eq(name)].set_index("period")["value"]
+    unit = units[name]
 
     if view == "Seasonal":
         st.plotly_chart(_seasonal_figure(name, storage_stats.seasonal(series), unit), **theme.wide())
@@ -822,8 +841,8 @@ def storage_tab(frame: pd.DataFrame, filters: Filters) -> None:
         return empty_state("Pick a product and trader category in the sidebar first.")
     state.ensure_option("storage_product", products)
     state.ensure_option("storage_category", present)
-    product = controls[1].selectbox("Product", products, key="storage_product")
-    category = controls[2].selectbox("Trader category", present, format_func=labels.get, key="storage_category")
+    product = controls[2].selectbox("Product", products, key="storage_product")
+    category = controls[3].selectbox("Trader category", present, format_func=labels.get, key="storage_category")
     positions = frame[frame["product"].eq(product) & frame["category"].eq(category)]
     merged = storage_stats.positioning_overlay(series, positions)
     if merged.empty:

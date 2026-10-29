@@ -339,7 +339,8 @@ def stocks_html(
 # --------------------------------------------------------------------------
 # EIA stocks history (one series, every week), in the history-table style
 # --------------------------------------------------------------------------
-STOCK_HISTORY_MOVES = ("Week chg", "YoY chg", "chg %")  # signed and coloured
+STOCK_HISTORY_MOVES = ("Week chg", "YoY chg")  # signed and coloured
+STOCK_HISTORY_BLOCKS = ("1y Avg", "5y Avg")  # a thin line before these
 
 
 def _stock_history_cell(value, measure: str) -> tuple[str, str]:
@@ -349,14 +350,14 @@ def _stock_history_cell(value, measure: str) -> tuple[str, str]:
     if measure not in STOCK_HISTORY_MOVES:
         return f"{value:,.1f}", ""
     if round(value, 1) == 0:
-        return ("0.0%" if measure.endswith("%") else "0.0"), "flat"
-    text = f"{value:+,.1f}" + ("%" if measure.endswith("%") else "")
-    return text, "up" if value > 0 else "down"
+        return "0.0", "flat"
+    return f"{value:+,.1f}", "up" if value > 0 else "down"
 
 
 def stocks_history_html(table: pd.DataFrame) -> str:
-    """Week endings down the side (newest first), grouped measures across. Same look as
-    history_html: pinned header and date column, changes in green and red."""
+    """Week endings down the side (newest first); for each stock, Level / Week chg / YoY chg,
+    then 1y Avg / High / Low, then 5y Avg / High / Low. A thin line splits the blocks and a
+    heavier one splits the stocks. Same look as history_html: pinned header and dates."""
     if table is None or table.empty:
         return ""
     columns = list(table.columns)
@@ -366,12 +367,19 @@ def stocks_history_html(table: pd.DataFrame) -> str:
             groups[-1] = (group, groups[-1][1] + 1)
         else:
             groups.append((group, 1))
-    starts = {i for i, (g, _) in enumerate(columns) if i == 0 or columns[i - 1][0] != g}
+    stock_starts = {i for i, (g, _) in enumerate(columns) if i == 0 or columns[i - 1][0] != g}
+
+    def edge(i: int, measure: str) -> str:
+        if i in stock_starts:
+            return " gs2"
+        return " gs" if measure in STOCK_HISTORY_BLOCKS else ""
+
     head1 = '<th class="hd date" rowspan="2">Week ending</th>' + "".join(
-        f'<th class="hd grp" colspan="{span}">{html.escape(str(group))}</th>' for group, span in groups
+        f'<th class="hd grp gs2">{html.escape(str(group))}</th>'.replace("<th ", f'<th colspan="{span}" ', 1)
+        for group, span in groups
     )
     head2 = "".join(
-        f'<th class="hd sub{" gs" if i in starts else ""}">{html.escape(measure)}</th>'
+        f'<th class="hd sub{edge(i, measure)}">{html.escape(measure)}</th>'
         for i, (_, measure) in enumerate(columns)
     )
     body = []
@@ -379,7 +387,7 @@ def stocks_history_html(table: pd.DataFrame) -> str:
         cells = [f'<th class="d">{pd.Timestamp(stamp):%d %b %Y}</th>']
         for i, column in enumerate(columns):
             text, klass = _stock_history_cell(values[column], column[1])
-            cells.append(f'<td class="{klass}{" gs" if i in starts else ""}">{text}</td>')
+            cells.append(f'<td class="{klass}{edge(i, column[1])}">{text}</td>')
         body.append("<tr>" + "".join(cells) + "</tr>")
     return (
         '<div class="cot-hist-wrap"><table class="cot-hist"><thead>'

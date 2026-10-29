@@ -70,23 +70,38 @@ def as_of_table(long_frame: pd.DataFrame, units: dict[str, str], date=None) -> p
     return pd.DataFrame(rows)
 
 
-HISTORY_GROUPS = (
-    ("Stocks", (("Level", "value"), ("Week chg", "wow"), ("YoY chg", "yoy"))),
-    ("1-year", (("Avg", "avg1"), ("chg %", "vs_avg1_pct"), ("High", "max1"), ("Low", "min1"))),
-    ("5-year", (("Avg", "avg5"), ("chg %", "vs_avg_pct"), ("High", "max5"), ("Low", "min5"))),
+# Measures shown for each stock in the history table, in three blocks (a line between).
+HISTORY_MEASURES = (
+    (("Level", "value"), ("Week chg", "wow"), ("YoY chg", "yoy")),
+    (("1y Avg", "avg1"), ("1y High", "max1"), ("1y Low", "min1")),
+    (("5y Avg", "avg5"), ("5y High", "max5"), ("5y Low", "min5")),
 )
+HISTORY_BLOCK_STARTS = tuple(block[0][0] for block in HISTORY_MEASURES)  # "Level", "1y Avg", "5y Avg"
 
 
 def history_table(values: pd.Series) -> pd.DataFrame:
-    """One series, every week: dates down the side (newest first), the same measures as the
-    Snapshot tables across, under two-level columns (group, measure)."""
+    """One series, every week: dates down the side (newest first), the measures across."""
     stats = seasonal(values)
-    columns = pd.MultiIndex.from_tuples(
-        [(group, label) for group, measures in HISTORY_GROUPS for label, _ in measures]
-    )
-    data = [[row[key] for _, measures in HISTORY_GROUPS for _, key in measures] for _, row in stats.iterrows()]
-    table = pd.DataFrame(data, index=stats.index, columns=columns)
+    keys = [(label, key) for block in HISTORY_MEASURES for label, key in block]
+    table = pd.DataFrame({label: stats[key] for label, key in keys}, index=stats.index)
     return table.sort_index(ascending=False)
+
+
+def history_wide(long_frame: pd.DataFrame, names: list[str], labels: dict[str, str] | None = None) -> pd.DataFrame:
+    """Several series side by side: columns (stock, measure), weeks newest first.
+
+    Each series' figures are worked out on its own full history before they are
+    joined, so averages and highs are never cut short by another series' dates.
+    """
+    labels = labels or {}
+    parts = {}
+    for name in names:
+        values = long_frame[long_frame["series"].eq(name)].set_index("period")["value"]
+        if not values.empty:
+            parts[labels.get(name, name)] = history_table(values)
+    if not parts:
+        return pd.DataFrame()
+    return pd.concat(parts, axis=1).sort_index(ascending=False)
 
 
 def latest_table(long_frame: pd.DataFrame, units: dict[str, str]) -> pd.DataFrame:
