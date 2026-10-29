@@ -45,9 +45,11 @@ def header(loaded: pd.DataFrame, basis: str, ice_missing: bool) -> None:
         st.info(settings.IMPLIED_OPTIONS_NOTE, icon="🧮")
 
     if ice_missing:
+        reason = services.ice_problem(basis)
         st.caption(
             "ICE Futures Europe is selected but no ICE contracts loaded — "
-            "ice.com could not be reached, or the report layout changed."
+            + (f"the loader failed ({reason})." if reason else
+               "ice.com could not be reached and the ice_data folder has no usable file.")
         )
 
     if services.DEMO_MODE:
