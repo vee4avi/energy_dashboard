@@ -1,4 +1,4 @@
-"""The home page: a greeting, a card for each section, then the calendars stacked."""
+"""The home page: a greeting, then the calendars stacked."""
 
 from __future__ import annotations
 
@@ -8,8 +8,6 @@ from zoneinfo import ZoneInfo
 import streamlit as st
 
 from modules.calendars import widgets
-from modules.cftc import services as cftc_services
-from modules.registry import MODULES, Module
 
 TIMEZONE = ZoneInfo("Asia/Singapore")  # the greeting follows this clock, not the server's
 NAME = "trading junkie"
@@ -27,44 +25,27 @@ def greeting(now: dt.datetime) -> tuple[str, str]:
         headline = f"Good evening, {NAME}."
     if now.weekday() >= 5:
         aside = f"It's the weekend — {BEACH}"
-    elif 5 <= hour < 8:
+    elif 5 <= hour < 12:
         aside = f"It's too early right now — {BEACH}"
-    elif hour >= 21 or hour < 5:
-        aside = f"It's too late right now — {BEACH}"
     else:
-        aside = ""
+        aside = f"It's too late right now — {BEACH}"
     return headline, aside
 
 
-def _status(module: Module) -> str:
-    if module.key == "cftc":
-        friday, covers = cftc_services.next_release()
-        return f"Next report **{friday:%a %d %b}**, covering positions at {covers:%d %b}."
-    return ""
-
-
-def _cards(pages: dict[str, st.Page]) -> None:
-    columns = st.columns(len(MODULES) + 1, gap="medium")  # one spare column keeps cards compact
-    for column, module in zip(columns, MODULES):
-        with column, st.container(border=True, height=190):
-            badge = ":green[Live]" if module.live else ":gray[Coming soon]"
-            st.markdown(f"**{module.icon} {module.title}**  {badge}")
-            st.caption(module.blurb)
-            status = _status(module)
-            if status:
-                st.caption(status)
-            if module.live:
-                st.page_link(pages[module.key], label="Open", icon="➡️")
-
-
-def render(pages: dict[str, st.Page]) -> None:
-    """``pages`` maps each section key to its navigation page, for the links."""
+def render(pages: dict[str, st.Page] | None = None) -> None:
+    """The greeting, then the calendars stacked in the left half of the page."""
     now = dt.datetime.now(TIMEZONE)
     headline, aside = greeting(now)
-    st.markdown(f"<div class='sec-title' style='font-size:26px'>{headline}</div>", unsafe_allow_html=True)
-    st.caption(f"{now:%A %d %B %Y, %H:%M} Singapore" + (f"  ·  {aside}" if aside else ""))
-
-    _cards(pages)
-    widgets.macro_box()
-    widgets.holidays_box(now.date())
-    widgets.expiries_box(now.date())
+    st.markdown(
+        "<div class='hello'>"
+        f"<div class='hello-head'>{headline}</div>"
+        f"<div class='hello-aside'>{aside} 🏖️</div>"
+        f"<div class='hello-time'>{now:%A %d %B %Y · %H:%M} Singapore</div>"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+    left, _ = st.columns(2, gap="large")
+    with left:
+        widgets.macro_box()
+        widgets.holidays_box(now.date())
+        widgets.expiries_box(now.date())

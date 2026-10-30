@@ -27,7 +27,11 @@ def holidays_between(start: dt.date, end: dt.date, countries: list[str]) -> pd.D
     rows = []
     for name in countries:
         code = COUNTRIES[name]
-        calendar = holidays.country_holidays(code, years=years, subdiv="ENG" if code == "GB" else None)
+        subdiv = "ENG" if code == "GB" else None
+        try:  # English names (China's default is Chinese)
+            calendar = holidays.country_holidays(code, years=years, subdiv=subdiv, language="en_US")
+        except (NotImplementedError, ValueError, TypeError):
+            calendar = holidays.country_holidays(code, years=years, subdiv=subdiv)
         rows += [(day, name, label) for day, label in calendar.items() if start <= day <= end]
     frame = pd.DataFrame(rows, columns=["Date", "Country", "Holiday"])
     return frame.sort_values(["Date", "Country"]).reset_index(drop=True)

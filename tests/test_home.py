@@ -25,15 +25,28 @@ def at(day: str, hour: int) -> dt.datetime:
 
 
 def test_greeting() -> None:
-    # Wed 28 Oct 2026, a weekday
-    assert home.greeting(at("2026-10-28", 6)) == ("Good morning, trading junkie.", "It's too early right now — you should be at a beach.")
-    assert home.greeting(at("2026-10-28", 10)) == ("Good morning, trading junkie.", "")
-    assert home.greeting(at("2026-10-28", 15)) == ("Good afternoon, trading junkie.", "")
-    assert home.greeting(at("2026-10-28", 19)) == ("Good evening, trading junkie.", "")
-    assert home.greeting(at("2026-10-28", 22))[1] == "It's too late right now — you should be at a beach."
-    assert home.greeting(at("2026-10-28", 2)) == ("Good evening, trading junkie.", "It's too late right now — you should be at a beach.")
-    assert home.greeting(at("2026-10-31", 11))[1] == "It's the weekend — you should be at a beach."  # Saturday
+    early, late, weekend = (
+        "It's too early right now — you should be at a beach.",
+        "It's too late right now — you should be at a beach.",
+        "It's the weekend — you should be at a beach.",
+    )
+    # Wed 28 Oct 2026, a weekday: the beach line is always there
+    assert home.greeting(at("2026-10-28", 6)) == ("Good morning, trading junkie.", early)
+    assert home.greeting(at("2026-10-28", 10)) == ("Good morning, trading junkie.", early)
+    assert home.greeting(at("2026-10-28", 15)) == ("Good afternoon, trading junkie.", late)
+    assert home.greeting(at("2026-10-28", 19)) == ("Good evening, trading junkie.", late)
+    assert home.greeting(at("2026-10-28", 2)) == ("Good evening, trading junkie.", late)
+    assert home.greeting(at("2026-10-31", 11))[1] == weekend  # Saturday
     print("greeting: ok")
+
+
+def test_when() -> None:
+    today = dt.date(2026, 10, 30)
+    days = lambda n: widgets.when(today + dt.timedelta(days=n), today)  # noqa: E731
+    assert [days(0), days(1), days(5), days(14)] == ["today", "tomorrow", "in 5 days", "in 14 days"]
+    assert [days(15), days(21), days(30)] == ["in 2 weeks", "in 3 weeks", "in 4 weeks"]
+    assert [days(31), days(45), days(61), days(200)] == ["in 1 month", "in 1 month", "in 2 months", "in 7 months"]
+    print("when: ok")
 
 
 def test_holidays() -> None:
@@ -44,6 +57,8 @@ def test_holidays() -> None:
     assert ("Singapore", dt.date(2026, 12, 25)) in days
     assert any(c == "China" and d.month == 2 for c, d in days), "Chinese New Year"
     assert frame["Date"].is_monotonic_increasing
+    china = frame[frame["Country"].eq("China")]["Holiday"]
+    assert all(name.isascii() for name in china), "names in English"
     print("holidays: ok")
 
 
@@ -82,28 +97,31 @@ def test_tradingview_html() -> None:
     print("tradingview: ok")
 
 
-def test_boxes_render_and_filter() -> None:
+def test_home_page_renders() -> None:
     from streamlit.testing.v1 import AppTest
 
     os.chdir(ROOT)
     app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=90).run()
     assert not app.exception, [e.value for e in app.exception]
-    assert len(app.dataframe) == 2, "holidays and expiries"
-    app.multiselect(key="home_holiday_countries").set_value(["China"]).run()
-    app.multiselect(key="home_expiry_products").set_value(["Brent options"]).run()
-    assert not app.exception, [e.value for e in app.exception]
-    app.multiselect(key="home_expiry_products").set_value([]).run()
-    app.multiselect(key="home_tv_countries").set_value([]).run()
-    assert not app.exception
-    captions = "\n".join(c.value for c in app.caption)
-    assert "Pick at least one contract." in captions and "Pick at least one importance" in captions
-    print("home boxes: ok")
+    text = "\n".join(m.value for m in app.markdown)
+    assert "trading junkie" in text and "you should be at a beach" in text
+    for title in ("Macro calendar", "Bank holidays", "Contract expiries"):
+        assert title in text, title
+    assert not app.multiselect, "no filters: everything is shown"
+    assert len(app.dataframe) == 2
+    holidays = app.dataframe[0].value
+    assert list(holidays.columns) == ["Date", "Country", "Holiday", "When"]
+    assert set(holidays["Country"]) == {"US", "UK", "Singapore", "China"}
+    assert set(app.dataframe[1].value["Product"]) == {"Brent futures", "Brent options"}
+    assert "Live" not in text, "no section cards on the home page"
+    print("home page: ok")
 
 
 if __name__ == "__main__":
     test_greeting()
+    test_when()
     test_holidays()
     test_expiries_match_ice_and_its_rule()
     test_tradingview_html()
-    test_boxes_render_and_filter()
+    test_home_page_renders()
     print("\nall home tests passed")

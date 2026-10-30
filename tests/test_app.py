@@ -36,17 +36,12 @@ def test_registry() -> None:
 
 
 def test_app_opens_on_the_home_page() -> None:
-    from modules.registry import MODULES
-
     os.environ.pop("APP_PASSWORD", None)
     at = _router().run()
     assert not at.exception, [e.value for e in at.exception]
     text = _text(at)
     assert "trading junkie" in text, "the greeting comes first"
-    for module in MODULES:
-        assert module.title in text, module.title
-    assert text.count(":green[Live]") == 1 and text.count(":gray[Coming soon]") == len(MODULES) - 1
-    for box in ("Macro calendar", "Holidays", "Contract expiries"):
+    for box in ("Macro calendar", "Bank holidays", "Contract expiries"):
         assert box in text, box
     print("home page: ok")
 
