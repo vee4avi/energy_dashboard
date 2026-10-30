@@ -1,34 +1,15 @@
-# Trading dashboard
+# Petroleum positioning dashboard
 
-A Streamlit app with a home page and a page for each section.
-
-- **Home:** a greeting (Singapore time), a card per section, and three calendars stacked,
-  each a fixed height that scrolls inside: TradingView's macro calendar, public holidays
-  (US, UK, Singapore, China) and contract expiries (Brent futures and options, from ICE).
-- **CFTC positioning:** CFTC and ICE Commitments of Traders for petroleum, the desk
-  commentary and EIA weekly stocks.
-- **Weather & sea state:** coming soon.
+One Streamlit app: CFTC Commitments of Traders positioning for petroleum, the weekly desk
+commentary saved by the Telegram bot, and EIA weekly US stocks (Storage tab).
 
 ```
-app.py                  page setup, access code, menu
-modules/
-  registry.py           every section in one list (menu and home cards are built from it)
-  home.py               the home page and the greeting wording
-  calendars/            the home-page calendars; data/expiries.json holds the expiry dates
-  cftc/                 CFTC positioning (see modules/cftc/README.md)
-  weather/              placeholder
+app.py                  page setup, access code, then the CFTC page
+modules/cftc/           everything for the dashboard (see modules/cftc/README.md)
 shared/                 theme, tables, commentary cards, state, secrets, access code
-commentary/             the bot's weekly commentary files
-ice_data/               optional ICE history files
 extras/cot-report-bot/  the Telegram bot and its workflow, for reference (not run here)
 tests/
 ```
-
-## Contract expiries
-
-`modules/calendars/data/expiries.json` holds ICE's published last trading days (copied from
-ICE's expiry pages). To add a contract (Gasoil, Dubai, WTI…) or top up months, add an entry
-with its dates in the same shape. The greeting wording lives at the top of `modules/home.py`.
 
 ## ICE data
 
@@ -87,10 +68,10 @@ Weekly commentary needs no secret: copy the bot's `.json` files into the `commen
 Community Cloud apps are public by default, so set `APP_PASSWORD`, restrict viewers, or
 both. The filesystem is wiped on every restart, so the first load afterwards is slower.
 
-## Adding a section
+## Adding a module later
 
-1. Create `modules/<name>/__init__.py` and `modules/<name>/page.py` with a `render()` function.
-2. Add a `Module(...)` line to `modules/registry.py`. The menu and the home-page card appear by themselves.
+The calendar module and placeholders were set aside (not deleted). When you want a second page,
+restore them and use `st.navigation` again; ask and I'll wire it back in.
 
 ## Tests
 

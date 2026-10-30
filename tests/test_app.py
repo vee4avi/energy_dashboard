@@ -21,29 +21,12 @@ def _router() -> AppTest:
     return AppTest.from_file(str(ROOT / "app.py"), default_timeout=90)
 
 
-def _text(at) -> str:
-    return "\n".join(m.value for m in at.markdown)
-
-
-def test_registry() -> None:
-    from modules.registry import MODULES
-
-    keys = [m.key for m in MODULES]
-    assert len(keys) == len(set(keys)), "section keys are url paths and must be unique"
-    assert [m.key for m in MODULES if m.live] == ["cftc"]
-    assert all(callable(m.render) for m in MODULES)
-    print("registry: ok")
-
-
-def test_app_opens_on_the_home_page() -> None:
+def test_app_opens_on_the_cftc_page() -> None:
     os.environ.pop("APP_PASSWORD", None)
     at = _router().run()
     assert not at.exception, [e.value for e in at.exception]
-    text = _text(at)
-    assert "trading junkie" in text, "the greeting comes first"
-    for box in ("Macro calendar", "Bank holidays", "Contract expiries"):
-        assert box in text, box
-    print("home page: ok")
+    assert any("Petroleum positioning" in m.value for m in at.markdown)
+    print("app opens on cftc: ok")
 
 
 def test_app_wide_access_code() -> None:
@@ -52,13 +35,13 @@ def test_app_wide_access_code() -> None:
         at = _router().run()
         assert not at.exception, [e.value for e in at.exception]
         assert at.text_input(key="app_code"), "the code box shows first"
-        assert "trading junkie" not in _text(at), "nothing is drawn before the code"
+        assert not at.tabs, "nothing is drawn before the code"
 
         at.text_input(key="app_code").input("wrong").run()
         assert any("isn't right" in e.value for e in at.error)
         at.text_input(key="app_code").input("open sesame").run()
         assert not at.exception, [e.value for e in at.exception]
-        assert "trading junkie" in _text(at), "unlocked"
+        assert at.tabs, "unlocked"
     finally:
         os.environ.pop("APP_PASSWORD", None)
     print("access code: ok")
@@ -97,8 +80,7 @@ def test_filters_survive_a_visit_to_another_page() -> None:
 
 
 if __name__ == "__main__":
-    test_registry()
-    test_app_opens_on_the_home_page()
+    test_app_opens_on_the_cftc_page()
     test_app_wide_access_code()
     test_filters_survive_a_visit_to_another_page()
     print("\nall app tests passed")

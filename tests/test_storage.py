@@ -171,7 +171,7 @@ def test_tab_runs() -> None:
     from streamlit.testing.v1 import AppTest
 
     os.chdir(ROOT)
-    at = AppTest.from_file(str(ROOT / "tests" / "cftc_entry.py"), default_timeout=90).run()
+    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=90).run()
     assert not at.exception, [e.value for e in at.exception]
     text = "\n".join(m.value for m in at.markdown)
     assert "US stocks (EIA)" in text and "sec-rule" in text and text.count("Week ending") >= 2
@@ -199,7 +199,7 @@ def test_tab_asks_for_a_key() -> None:
 
     os.chdir(ROOT)
     os.environ["COT_DEMO"] = "1"
-    at = AppTest.from_file(str(ROOT / "tests" / "cftc_entry.py"), default_timeout=90)
+    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=90)
     at.run()
     # With no key and not in demo mode the tab should explain, not crash.
     services.DEMO_MODE = False

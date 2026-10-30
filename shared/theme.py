@@ -218,7 +218,6 @@ DOWN_COLOUR = "#c0392b"  # decreases
 
 PAGE_CSS = f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..600;1,8..60,400..600&display=swap');
 .block-container, [data-testid="stMainBlockContainer"] {{
     /* Top padding must clear Streamlit's fixed toolbar (about 3.75rem), or the
        header row's labels slide underneath it. */
@@ -292,20 +291,6 @@ table.cot-hist tbody tr:nth-child(even) th.d, table.cot-hist tbody tr:nth-child(
 table.cot-hist td.up {{ color: {UP_COLOUR}; }}
 table.cot-hist td.down {{ color: {DOWN_COLOUR}; }}
 table.cot-hist td.flat {{ color: #8a919a; }}
-/* Home page: greeting banner and calendar boxes. The serif is a free stand-in for the
-   one on Claude's home page, which is not publicly available. */
-.hello {{ background: linear-gradient(120deg, #12304a 0%, #1f5f7a 55%, #2f8f83 100%); color: #fff;
-    border-radius: 14px; padding: 1.4rem 1.8rem 1.2rem 1.8rem; margin: 0 0 1.3rem 0; }}
-.hello-head {{ font-family: 'Source Serif 4', Georgia, serif; font-size: 40px; font-weight: 500;
-    line-height: 1.15; letter-spacing: -0.01em; }}
-.hello-aside {{ font-family: 'Source Serif 4', Georgia, serif; font-size: 21px; font-style: italic;
-    opacity: .92; margin-top: .35rem; }}
-.hello-time {{ font-size: 13px; opacity: .75; margin-top: .6rem; }}
-[class*="st-key-calbox_"] {{ border: 1.5px solid #3b5368; border-radius: 12px; padding: 0 0.9rem 0.6rem 0.9rem;
-    background: #fbfcfd; margin-bottom: 1.1rem; overflow: hidden; }}
-.cal-title {{ margin: 0 -0.9rem 0.4rem -0.9rem; padding: .55rem .9rem; font-weight: 700; font-size: 15px;
-    color: #12304a; background: linear-gradient(90deg, #dbe9f1 0%, #e6f2ec 100%);
-    border-bottom: 1px solid #c9d6df; }}
 @media (max-width: 1100px) {{ .cot-grid {{ grid-template-columns: 1fr; }} }}
 </style>
 """
