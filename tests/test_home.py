@@ -31,8 +31,8 @@ def test_greeting() -> None:
     assert home.greeting(at(day, 11))[1].endswith("in bed. 🛏️")
     assert home.greeting(at(day, 12)) == ("Good afternoon, trading junkie.", "It's midday — you should be at a beach. 🏖️")
     assert home.greeting(at(day, 16)) == ("Good afternoon, trading junkie.", "It's late — you should be getting a drink. 🍹")
-    assert home.greeting(at(day, 18)) == ("Good evening, trading junkie.", "It's late — you should be at a wine dinner. 🍷")
-    assert home.greeting(at(day, 23))[1].endswith("wine dinner. 🍷")
+    assert home.greeting(at(day, 18)) == ("Good evening, trading junkie.", "It's late — go grab a bottle of wine. 🍷")
+    assert home.greeting(at(day, 23))[1].endswith("bottle of wine. 🍷")
     for hour in (2, 9, 14, 20):  # Saturday, any time
         assert home.greeting(at("2026-10-31", hour))[1] == "It's the weekend — you should be at a beach. 🏖️"
     print("greeting: ok")

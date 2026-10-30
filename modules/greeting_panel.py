@@ -13,7 +13,8 @@ import json
 
 from shared import theme
 
-PANEL_HEIGHT = 178  # px
+PANEL_HEIGHT = 186  # px
+DIGITS_FONT = "Orbitron"  # the clock numbers; any Google font name
 
 # (label, IANA time zone, market shown under the clock, sessions in local time)
 CLOCKS = (
@@ -37,13 +38,13 @@ def panel_html(headline: str, aside: str, now: dt.datetime) -> str:
     font = theme.GREETING_FONT
     clocks = "".join(
         f'<div class="clock" data-tz="{tz}" data-market="{market}">'
-        f'<div class="city">{html.escape(label)}</div><div class="time">--:--</div>'
-        f'<div class="date">&nbsp;</div><div class="badge"></div></div>'
+        f'<div class="date">&nbsp;</div><div class="time">--:--:--</div>'
+        f'<div class="city">{html.escape(label)}</div><div class="badge"></div></div>'
         for label, tz, market, _ in CLOCKS
     )
     sessions = {market: hours for _, _, market, hours in CLOCKS if market}
     return f"""<!doctype html><html><head><meta charset="utf-8">
-<link href="https://fonts.googleapis.com/css2?family={font.replace(' ', '+')}:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family={font.replace(' ', '+')}:ital,wght@0,400;0,500;0,600;1,400&family={DIGITS_FONT.replace(' ', '+')}:wght@500;600&display=swap" rel="stylesheet">
 <style>
 html, body {{ margin: 0; padding: 0; background: transparent; }}
 .panel {{ box-sizing: border-box; height: {PANEL_HEIGHT - 6}px; display: flex; align-items: center;
@@ -55,16 +56,15 @@ html, body {{ margin: 0; padding: 0; background: transparent; }}
 .aside {{ font-family: '{font}', Georgia, serif; font-size: 18px; font-style: italic; color: #4f5c33; margin-top: .4rem; }}
 .stamp {{ font-size: 13px; color: #5f6655; margin-top: .6rem; }}
 .clocks {{ display: flex; gap: .8rem; }}
-.clock {{ min-width: 128px; background: rgba(255,255,255,.55); border: 1px solid rgba(79,92,51,.25);
-  border-radius: 10px; padding: .55rem .8rem; text-align: center; }}
-.city {{ font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #4f5c33; }}
-.time {{ font-family: '{font}', Georgia, serif; font-size: 28px; font-weight: 500; color: #2f3a22;
-  font-variant-numeric: tabular-nums; line-height: 1.2; }}
+.clock {{ min-width: 172px; background: rgba(255,255,255,.55); border: 1px solid rgba(79,92,51,.25);
+  border-radius: 10px; padding: .6rem 1rem .55rem 1rem; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; text-align: center; }}
 .date {{ font-size: 12px; color: #5f6655; }}
+.time {{ font-family: '{DIGITS_FONT}', 'Courier New', monospace; font-size: 26px; font-weight: 600; color: #2f3a22;
+  font-variant-numeric: tabular-nums; letter-spacing: .04em; line-height: 1.35; margin: .1rem 0; }}
+.city {{ font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #4f5c33; }}
 .badge:empty {{ display: none; }}
-.badge {{ display: inline-block; margin-top: .3rem; font-size: 11px; font-weight: 700; padding: 1px 8px;
-  border-radius: 999px; color: #fff; background: #8a8f7c; }}
-.badge.open {{ background: #3f7d3a; }} .badge.ext {{ background: #b07d1e; }}
+.badge {{ margin-top: .2rem; font-size: 12px; font-weight: 700; color: #000; }}
 @media (max-width: 900px) {{ .clocks {{ display: none; }} }}
 </style></head><body>
 <div class="panel">
@@ -98,8 +98,8 @@ function tick() {{
     el.querySelector('.date').textContent = p.weekday + ' ' + p.day + ' ' + p.month;
     const market = el.dataset.market;
     if (market) {{
-      const [text, cls] = status(market, p, p.year + '-' + MONTHS[p.month] + '-' + p.day);
-      const b = el.querySelector('.badge'); b.textContent = market + ' · ' + text; b.className = 'badge ' + cls;
+      const [text] = status(market, p, p.year + '-' + MONTHS[p.month] + '-' + p.day);
+      const b = el.querySelector('.badge'); b.textContent = market + ' · ' + text;
     }}
   }});
 }}

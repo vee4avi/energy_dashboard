@@ -38,7 +38,7 @@ def greeting(now: dt.datetime) -> tuple[str, str]:
     elif hour < 18:
         aside = "It's late — you should be getting a drink. 🍹"
     else:
-        aside = "It's late — you should be at a wine dinner. 🍷"
+        aside = "It's late — go grab a bottle of wine. 🍷"
     return headline, aside
 
 
