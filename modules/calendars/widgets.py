@@ -104,7 +104,7 @@ MARKET_SUMMARY_EMBED = (
     '<script type="module" src="https://widgets.tradingview-widget.com/w/en/tv-market-summary.js"></script>'
     "<tv-market-summary></tv-market-summary>"
 )
-MARKET_SUMMARY_HEIGHT = 330
+MARKET_SUMMARY_HEIGHT = 255  # the cards plus TradingView's credit line, no spare room
 
 
 def market_summary_box() -> None:
