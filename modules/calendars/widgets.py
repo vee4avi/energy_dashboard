@@ -113,7 +113,7 @@ def holidays_box(today: dt.date) -> None:
         _note("No bank holidays in the next 12 months.")
         return
     _table(pd.DataFrame({
-        "Date": [f"{d:%a %d %b %Y}" for d in frame["Date"]],
+        "Date": [f"{d:%d %b %y}" for d in frame["Date"]],
         "Country": frame["Country"],
         "Holiday": frame["Holiday"],
         "When": [when(d, today) for d in frame["Date"]],
@@ -128,7 +128,7 @@ def expiries_box(today: dt.date) -> None:
         _note("No expiries held; add months to the expiries file.")
         return
     _table(pd.DataFrame({
-        "Expiry": [f"{d:%a %d %b %Y}" for d in frame["Date"]],
+        "Expiry": [f"{d:%d %b %y}" for d in frame["Date"]],
         "Product": frame["Product"],
         "Contract": frame["Contract"],
         "When": [when(d, today) for d in frame["Date"]],

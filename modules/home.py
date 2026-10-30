@@ -17,38 +17,46 @@ BEACH = "you should be at a beach."
 def greeting(now: dt.datetime) -> tuple[str, str]:
     """(headline, aside) for a local time. Edit the wording here."""
     hour = now.hour
-    if 5 <= hour < 12:
+    if hour < 6:
+        headline = f"Good evening, {NAME}."
+    elif hour < 12:
         headline = f"Good morning, {NAME}."
-    elif 12 <= hour < 18:
+    elif hour < 18:
         headline = f"Good afternoon, {NAME}."
     else:
         headline = f"Good evening, {NAME}."
+
     if now.weekday() >= 5:
-        aside = f"It's the weekend — {BEACH}"
-    elif 5 <= hour < 12:
-        aside = f"It's too early right now — {BEACH}"
+        aside = f"It's the weekend — {BEACH} 🏖️"
+    elif hour < 6:
+        aside = "It's past midnight — why on earth are you awake? 🦉"
+    elif hour < 12:
+        aside = "It's too early right now — you should be in bed. 🛏️"
+    elif hour < 16:
+        aside = f"It's midday — {BEACH} 🏖️"
+    elif hour < 18:
+        aside = "It's late — you should be getting a drink. 🍹"
     else:
-        aside = f"It's too late right now — {BEACH}"
+        aside = "It's late — you should be at a wine dinner. 🍷"
     return headline, aside
 
 
 def render(pages: dict[str, st.Page] | None = None) -> None:
-    """The greeting, then the macro calendar beside the bank holidays, then expiries."""
+    """The greeting, then the three calendars side by side."""
     now = dt.datetime.now(TIMEZONE)
     headline, aside = greeting(now)
     st.markdown(
         "<div class='hello'>"
         f"<div class='hello-head'>{headline}</div>"
-        f"<div class='hello-aside'>{aside} 🏖️</div>"
+        f"<div class='hello-aside'>{aside}</div>"
         f"<div class='hello-time'>{now:%A %d %B %Y · %H:%M} Singapore</div>"
         "</div>",
         unsafe_allow_html=True,
     )
-    macro, holidays = st.columns([5, 6], gap="large")
+    macro, holidays, expiries = st.columns(3, gap="medium")
     with macro:
         widgets.macro_box()
     with holidays:
         widgets.holidays_box(now.date())
-    expiries, _ = st.columns([5, 6], gap="large")
     with expiries:
         widgets.expiries_box(now.date())
