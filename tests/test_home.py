@@ -98,6 +98,7 @@ def test_greeting_panel() -> None:
     assert 'data-market="NASDAQ"' in markup and '"open": "09:30"' in markup
     assert '"2026-11-26"' in markup, "NYSE holidays (Thanksgiving) feed the open/closed badge"
     assert "setInterval(tick, 1000)" in markup
+    assert "font/woff2;base64," in markup and 'class="cell"' in markup, "LED font built in, digit cells"
     print("greeting panel: ok")
 
 
