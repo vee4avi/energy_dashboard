@@ -25,18 +25,16 @@ def at(day: str, hour: int) -> dt.datetime:
 
 
 def test_greeting() -> None:
-    early, late, weekend = (
-        "It's too early right now — you should be at a beach.",
-        "It's too late right now — you should be at a beach.",
-        "It's the weekend — you should be at a beach.",
-    )
-    # Wed 28 Oct 2026, a weekday: the beach line is always there
-    assert home.greeting(at("2026-10-28", 6)) == ("Good morning, trading junkie.", early)
-    assert home.greeting(at("2026-10-28", 10)) == ("Good morning, trading junkie.", early)
-    assert home.greeting(at("2026-10-28", 15)) == ("Good afternoon, trading junkie.", late)
-    assert home.greeting(at("2026-10-28", 19)) == ("Good evening, trading junkie.", late)
-    assert home.greeting(at("2026-10-28", 2)) == ("Good evening, trading junkie.", late)
-    assert home.greeting(at("2026-10-31", 11))[1] == weekend  # Saturday
+    day = "2026-10-28"  # a Wednesday
+    assert home.greeting(at(day, 2)) == ("Good evening, trading junkie.", "It's past midnight — why on earth are you awake? 🦉")
+    assert home.greeting(at(day, 6)) == ("Good morning, trading junkie.", "It's too early right now — you should be in bed. 🛏️")
+    assert home.greeting(at(day, 11))[1].endswith("in bed. 🛏️")
+    assert home.greeting(at(day, 12)) == ("Good afternoon, trading junkie.", "It's midday — you should be at a beach. 🏖️")
+    assert home.greeting(at(day, 16)) == ("Good afternoon, trading junkie.", "It's late — you should be getting a drink. 🍹")
+    assert home.greeting(at(day, 18)) == ("Good evening, trading junkie.", "It's late — you should be at a wine dinner. 🍷")
+    assert home.greeting(at(day, 23))[1].endswith("wine dinner. 🍷")
+    for hour in (2, 9, 14, 20):  # Saturday, any time
+        assert home.greeting(at("2026-10-31", hour))[1] == "It's the weekend — you should be at a beach. 🏖️"
     print("greeting: ok")
 
 
@@ -115,7 +113,7 @@ def test_home_page_renders() -> None:
     app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=90).run()
     assert not app.exception, [e.value for e in app.exception]
     text = "\n".join(m.value for m in app.markdown)
-    assert "trading junkie" in text and "you should be at a beach" in text
+    assert "trading junkie" in text and "hello-aside" in text
     for title in ("Macro calendar", "Bank holidays", "Contract expiries"):
         assert title in text, title
     assert not app.multiselect, "no filters: everything is shown"
