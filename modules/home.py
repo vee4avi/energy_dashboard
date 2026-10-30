@@ -42,7 +42,7 @@ def greeting(now: dt.datetime) -> tuple[str, str]:
 
 
 def render(pages: dict[str, st.Page] | None = None) -> None:
-    """The greeting, then the three calendars side by side."""
+    """The greeting, TradingView's market summary, then the three calendars side by side."""
     now = dt.datetime.now(TIMEZONE)
     headline, aside = greeting(now)
     st.markdown(
@@ -53,6 +53,7 @@ def render(pages: dict[str, st.Page] | None = None) -> None:
         "</div>",
         unsafe_allow_html=True,
     )
+    widgets.market_summary_box()
     macro, holidays, expiries = st.columns(3, gap="medium")
     with macro:
         widgets.macro_box()

@@ -103,6 +103,7 @@ def test_tradingview_html() -> None:
     assert 'src="https://s3.tradingview.com/external-embedding/embed-widget-events.js"' in markup
     assert '"importanceFilter": "1"' in markup and '"countryFilter": "us,cn"' in markup
     assert '"height": "300"' in markup and "TradingView" in markup, "fixed height; attribution kept"
+    assert "tv-market-summary" in widgets.MARKET_SUMMARY_EMBED
     print("tradingview: ok")
 
 
@@ -114,7 +115,7 @@ def test_home_page_renders() -> None:
     assert not app.exception, [e.value for e in app.exception]
     text = "\n".join(m.value for m in app.markdown)
     assert "trading junkie" in text and "hello-aside" in text
-    for title in ("Macro calendar", "Bank holidays", "Contract expiries"):
+    for title in ("Market summary", "Macro calendar", "Bank holidays", "Contract expiries"):
         assert title in text, title
     assert not app.multiselect, "no filters: everything is shown"
     tables = [m.value for m in app.markdown if 'class="cal"' in m.value]

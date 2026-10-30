@@ -12,7 +12,7 @@ import streamlit.components.v1 as components
 
 from modules.calendars import data_sources
 
-BOX_HEIGHT = 520  # px, every calendar box (scrolls inside)
+BOX_HEIGHT = 633  # px, every calendar box (scrolls inside)
 TV_SCRIPT = "https://s3.tradingview.com/external-embedding/embed-widget-events.js"
 TV_IMPORTANCE = {"High": "1", "Medium": "0", "Low": "-1"}
 TV_COUNTRIES = {
@@ -94,7 +94,22 @@ def table_html(frame: pd.DataFrame, height: int, soon_column: str = "When") -> s
     )
 
 
-TV_HEIGHT = 560  # the widget's own height; its credit line sits below it
+TV_HEIGHT = BOX_HEIGHT + 40  # the widget's own height; its credit line sits below it
+
+
+# TradingView's Market Summary is one of its newer "web component" widgets. If it stays
+# blank, generate the embed code on TradingView's Market Summary widget page and paste it
+# here in place of this string; nothing else needs to change.
+MARKET_SUMMARY_EMBED = (
+    '<script type="module" src="https://widgets.tradingview-widget.com/w/en/tv-market-summary.js"></script>'
+    "<tv-market-summary></tv-market-summary>"
+)
+MARKET_SUMMARY_HEIGHT = 330
+
+
+def market_summary_box() -> None:
+    _title("Market summary")
+    _embed(f'<div style="font-family:sans-serif">{MARKET_SUMMARY_EMBED}</div>', MARKET_SUMMARY_HEIGHT)
 
 
 def macro_box() -> None:
