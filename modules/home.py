@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 
 import streamlit as st
 
+from modules import greeting_panel
 from modules.calendars import widgets
 
 TIMEZONE = ZoneInfo("Asia/Singapore")  # the greeting follows this clock, not the server's
@@ -45,14 +46,7 @@ def render(pages: dict[str, st.Page] | None = None) -> None:
     """The greeting, TradingView's market summary, then the three calendars side by side."""
     now = dt.datetime.now(TIMEZONE)
     headline, aside = greeting(now)
-    st.markdown(
-        "<div class='hello'>"
-        f"<div class='hello-head'>{headline}</div>"
-        f"<div class='hello-aside'>{aside}</div>"
-        f"<div class='hello-time'>{now:%A %d %B %Y · %H:%M} Singapore</div>"
-        "</div>",
-        unsafe_allow_html=True,
-    )
+    widgets._embed(greeting_panel.panel_html(headline, aside, now), greeting_panel.PANEL_HEIGHT)
     widgets.market_summary_box()
     macro, holidays, expiries = st.columns(3, gap="medium")
     with macro:

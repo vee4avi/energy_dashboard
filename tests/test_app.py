@@ -40,7 +40,6 @@ def test_app_opens_on_the_home_page() -> None:
     at = _router().run()
     assert not at.exception, [e.value for e in at.exception]
     text = _text(at)
-    assert "trading junkie" in text, "the greeting comes first"
     for box in ("Macro calendar", "Bank holidays", "Contract expiries"):
         assert box in text, box
     print("home page: ok")
@@ -52,13 +51,13 @@ def test_app_wide_access_code() -> None:
         at = _router().run()
         assert not at.exception, [e.value for e in at.exception]
         assert at.text_input(key="app_code"), "the code box shows first"
-        assert "trading junkie" not in _text(at), "nothing is drawn before the code"
+        assert "Bank holidays" not in _text(at), "nothing is drawn before the code"
 
         at.text_input(key="app_code").input("wrong").run()
         assert any("isn't right" in e.value for e in at.error)
         at.text_input(key="app_code").input("open sesame").run()
         assert not at.exception, [e.value for e in at.exception]
-        assert "trading junkie" in _text(at), "unlocked"
+        assert "Bank holidays" in _text(at), "unlocked"
     finally:
         os.environ.pop("APP_PASSWORD", None)
     print("access code: ok")

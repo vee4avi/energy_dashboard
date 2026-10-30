@@ -87,6 +87,20 @@ def test_expiries_match_ice_and_its_rule() -> None:
     print("expiries: ok")
 
 
+def test_greeting_panel() -> None:
+    from modules import greeting_panel
+
+    now = at("2026-10-28", 15)
+    markup = greeting_panel.panel_html("Good afternoon, trading junkie.", "It's midday <b>", now)
+    assert "Good afternoon, trading junkie." in markup and "It&#x27;s midday &lt;b&gt;" in markup, "escaped"
+    for zone in ("Asia/Singapore", "Europe/London", "America/New_York"):
+        assert f'data-tz="{zone}"' in markup, zone
+    assert 'data-market="NASDAQ"' in markup and '"open": "09:30"' in markup
+    assert '"2026-11-26"' in markup, "NYSE holidays (Thanksgiving) feed the open/closed badge"
+    assert "setInterval(tick, 1000)" in markup
+    print("greeting panel: ok")
+
+
 def test_table_html() -> None:
     import pandas as pd
 
@@ -114,7 +128,6 @@ def test_home_page_renders() -> None:
     app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=90).run()
     assert not app.exception, [e.value for e in app.exception]
     text = "\n".join(m.value for m in app.markdown)
-    assert "trading junkie" in text and "hello-aside" in text
     for title in ("Market summary", "Macro calendar", "Bank holidays", "Contract expiries"):
         assert title in text, title
     assert not app.multiselect, "no filters: everything is shown"
@@ -134,6 +147,7 @@ if __name__ == "__main__":
     test_when()
     test_holidays()
     test_expiries_match_ice_and_its_rule()
+    test_greeting_panel()
     test_table_html()
     test_tradingview_html()
     test_home_page_renders()
