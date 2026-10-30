@@ -212,7 +212,6 @@ def wide() -> dict:
 # --------------------------------------------------------------------------
 SIDEBAR_WIDTH = "17rem"  # Streamlit's default is about 21rem
 GREETING_FONT = "Source Serif 4"  # Google font for the greeting
-TITLE_FONT = "Plus Jakarta Sans"  # Google font for the calendar titles
 TEXT_PX = 12.5  # table and commentary body text
 HEAD_PX = 16  # commentary headings: three steps above the body
 UP_COLOUR = "#1a7f37"  # week-on-week increases in the history table
@@ -220,7 +219,7 @@ DOWN_COLOUR = "#c0392b"  # decreases
 
 PAGE_CSS = f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family={GREETING_FONT.replace(' ', '+')}:ital,wght@0,400;0,500;1,400&family={TITLE_FONT.replace(' ', '+')}:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family={GREETING_FONT.replace(' ', '+')}:ital,wght@0,400;0,500;0,600;1,400&display=swap');
 .block-container, [data-testid="stMainBlockContainer"] {{
     /* Top padding must clear Streamlit's fixed toolbar (about 3.75rem), or the
        header row's labels slide underneath it. */
@@ -294,28 +293,29 @@ table.cot-hist tbody tr:nth-child(even) th.d, table.cot-hist tbody tr:nth-child(
 table.cot-hist td.up {{ color: {UP_COLOUR}; }}
 table.cot-hist td.down {{ color: {DOWN_COLOUR}; }}
 table.cot-hist td.flat {{ color: #8a919a; }}
-/* Home page. One palette: olive for the greeting panel, accents, headers and
-   underlines, warm sand for table bands. Greeting in GREETING_FONT (a serif), calendar titles in
-   TITLE_FONT. Any Google font name works. */
-.hello {{ background: linear-gradient(120deg, #eef1e3 0%, #e3e9d3 100%); border-left: 6px solid #4d5a32; border-radius: 10px;
-    padding: 1.3rem 1.7rem 1.1rem 1.6rem; margin: 0 0 1.6rem 0; }}
+/* Home page. One palette: a light olive (sage) for the greeting panel, accents, headers and
+   underlines, warm sand for table bands. Greeting, titles and table headers share
+   GREETING_FONT. */
+.hello {{ background: linear-gradient(120deg, #f4f6ee 0%, #eaefdf 100%); border-left: 6px solid #8f9c68;
+    border-radius: 10px; padding: 1.9rem 2rem 1.7rem 2rem; margin: 0 0 1.6rem 0; text-align: center; }}
 .hello-head {{ font-family: '{GREETING_FONT}', Georgia, serif; font-size: 32px; font-weight: 500;
-    line-height: 1.2; letter-spacing: -0.01em; color: #2f3a22; }}
+    line-height: 1.2; letter-spacing: -0.01em; color: #3e4a2a; }}
 .hello-aside {{ font-family: '{GREETING_FONT}', Georgia, serif; font-size: 18px; font-style: italic;
-    color: #4d5a32; margin-top: .35rem; }}
-.hello-time {{ font-size: 13px; color: #6b7280; margin-top: .55rem; }}
-.cal-title {{ font-family: '{TITLE_FONT}', 'Segoe UI', sans-serif; font-size: 16px; font-weight: 700; color: #3b4626;
-    padding-bottom: .2rem; margin: 0 0 .55rem 0; border-bottom: 3px solid #4d5a32; display: inline-block; }}
+    color: #6f7d4a; margin-top: .4rem; }}
+.hello-time {{ font-size: 13px; color: #7b8070; margin-top: .6rem; }}
+.cal-title {{ font-family: '{GREETING_FONT}', Georgia, serif; font-size: 20px; font-weight: 600; color: #3e4a2a;
+    padding-bottom: .2rem; margin: 0 0 .55rem 0; border-bottom: 3px solid #a4b07c; display: inline-block; }}
 .cal-note {{ font-size: 12px; color: #6b7280; margin: .35rem 0 1.4rem 0; }}
 .cal-wrap {{ overflow: auto; border-radius: 8px; }}
 table.cal {{ border-collapse: separate; border-spacing: 0; width: 100%; font-size: 13px; color: #1b1f24; }}
-table.cal th {{ position: sticky; top: 0; z-index: 1; background: #4d5a32; color: #f6f1e1; font-weight: 700;
+table.cal th {{ position: sticky; top: 0; z-index: 1; background: #b9c294; color: #2f3a22;
+    font-family: '{GREETING_FONT}', Georgia, serif; font-size: 14px; font-weight: 600;
     text-align: left; padding: 7px 10px; border: 0; }}
 table.cal td {{ padding: 6px 10px; border: 0; white-space: normal; vertical-align: top; }}
 table.cal td:first-child, table.cal td:last-child {{ white-space: nowrap; }}
-table.cal tbody tr:nth-child(even) td {{ background: #f4f1e4; }}
+table.cal tbody tr:nth-child(even) td {{ background: #f3f5ea; }}
 table.cal tbody tr:nth-child(odd) td {{ background: #ffffff; }}
-table.cal td.soon {{ color: #4d5a32; font-weight: 700; }}
+table.cal td.soon {{ color: #5f6d3a; font-weight: 700; }}
 @media (max-width: 1100px) {{ .cot-grid {{ grid-template-columns: 1fr; }} }}
 </style>
 """
