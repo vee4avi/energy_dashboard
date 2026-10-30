@@ -294,14 +294,14 @@ table.cot-hist tbody tr:nth-child(even) th.d, table.cot-hist tbody tr:nth-child(
 table.cot-hist td.up {{ color: {UP_COLOUR}; }}
 table.cot-hist td.down {{ color: {DOWN_COLOUR}; }}
 table.cot-hist td.flat {{ color: #8a919a; }}
-/* Home page. One palette: navy for the greeting, olive for accents, headers and
-   underlines, warm sand for fills. Greeting in GREETING_FONT (a serif), calendar titles in
+/* Home page. One palette: olive for the greeting panel, accents, headers and
+   underlines, warm sand for table bands. Greeting in GREETING_FONT (a serif), calendar titles in
    TITLE_FONT. Any Google font name works. */
-.hello {{ background: #fbf4e2; border-left: 6px solid #4d5a32; border-radius: 10px;
+.hello {{ background: linear-gradient(120deg, #eef1e3 0%, #e3e9d3 100%); border-left: 6px solid #4d5a32; border-radius: 10px;
     padding: 1.3rem 1.7rem 1.1rem 1.6rem; margin: 0 0 1.6rem 0; }}
-.hello-head {{ font-family: '{GREETING_FONT}', Georgia, serif; font-size: 40px; font-weight: 500;
-    line-height: 1.15; letter-spacing: -0.01em; color: #12304a; }}
-.hello-aside {{ font-family: '{GREETING_FONT}', Georgia, serif; font-size: 21px; font-style: italic;
+.hello-head {{ font-family: '{GREETING_FONT}', Georgia, serif; font-size: 32px; font-weight: 500;
+    line-height: 1.2; letter-spacing: -0.01em; color: #2f3a22; }}
+.hello-aside {{ font-family: '{GREETING_FONT}', Georgia, serif; font-size: 18px; font-style: italic;
     color: #4d5a32; margin-top: .35rem; }}
 .hello-time {{ font-size: 13px; color: #6b7280; margin-top: .55rem; }}
 .cal-title {{ font-family: '{TITLE_FONT}', 'Segoe UI', sans-serif; font-size: 16px; font-weight: 700; color: #3b4626;
