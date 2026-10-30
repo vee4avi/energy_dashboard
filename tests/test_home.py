@@ -89,6 +89,17 @@ def test_expiries_match_ice_and_its_rule() -> None:
     print("expiries: ok")
 
 
+def test_table_html() -> None:
+    import pandas as pd
+
+    frame = pd.DataFrame({"Date": ["Fri 30 Oct"], "Holiday": ["<b>x</b>"], "When": ["in 3 days"]})
+    markup = widgets.table_html(frame, 200)
+    assert "max-height:200px" in markup and "&lt;b&gt;" in markup, "fixed height; text escaped"
+    assert '<td class="soon">in 3 days</td>' in markup
+    assert '<td class="soon">' not in widgets.table_html(frame.assign(When=["in 2 weeks"]), 200)
+    print("table html: ok")
+
+
 def test_tradingview_html() -> None:
     markup = widgets.tradingview_html(["High"], ["United States", "China"], 300)
     assert 'src="https://s3.tradingview.com/external-embedding/embed-widget-events.js"' in markup
@@ -108,11 +119,13 @@ def test_home_page_renders() -> None:
     for title in ("Macro calendar", "Bank holidays", "Contract expiries"):
         assert title in text, title
     assert not app.multiselect, "no filters: everything is shown"
-    assert len(app.dataframe) == 2
-    holidays = app.dataframe[0].value
-    assert list(holidays.columns) == ["Date", "Country", "Holiday", "When"]
-    assert set(holidays["Country"]) == {"US", "UK", "Singapore", "China"}
-    assert set(app.dataframe[1].value["Product"]) == {"Brent futures", "Brent options"}
+    tables = [m.value for m in app.markdown if 'class="cal"' in m.value]
+    assert len(tables) == 2, "bank holidays and expiries"
+    assert "<th>Date</th><th>Country</th><th>Holiday</th><th>When</th>" in tables[0]
+    for country in ("US", "UK", "Singapore", "China"):
+        assert f"<td>{country}</td>" in tables[0], country
+    assert "Brent futures" in tables[1] and "Brent options" in tables[1]
+    assert all("\n" not in t for t in tables), "one line, so Markdown leaves it alone"
     assert "Live" not in text, "no section cards on the home page"
     print("home page: ok")
 
@@ -122,6 +135,7 @@ if __name__ == "__main__":
     test_when()
     test_holidays()
     test_expiries_match_ice_and_its_rule()
+    test_table_html()
     test_tradingview_html()
     test_home_page_renders()
     print("\nall home tests passed")

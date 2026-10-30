@@ -218,6 +218,7 @@ DOWN_COLOUR = "#c0392b"  # decreases
 
 PAGE_CSS = f"""
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..600;1,8..60,400..600&display=swap');
 .block-container, [data-testid="stMainBlockContainer"] {{
     /* Top padding must clear Streamlit's fixed toolbar (about 3.75rem), or the
        header row's labels slide underneath it. */
@@ -291,6 +292,26 @@ table.cot-hist tbody tr:nth-child(even) th.d, table.cot-hist tbody tr:nth-child(
 table.cot-hist td.up {{ color: {UP_COLOUR}; }}
 table.cot-hist td.down {{ color: {DOWN_COLOUR}; }}
 table.cot-hist td.flat {{ color: #8a919a; }}
+/* Home page. One palette: deep navy for text and headings, mustard for accents, warm
+   sand for fills. The serif is a free stand-in for the one on Claude's home page. */
+.hello {{ background: #fbf4e2; border-left: 6px solid #d4a72c; border-radius: 10px;
+    padding: 1.3rem 1.7rem 1.1rem 1.6rem; margin: 0 0 1.6rem 0; }}
+.hello-head {{ font-family: 'Source Serif 4', Georgia, serif; font-size: 40px; font-weight: 500;
+    line-height: 1.15; letter-spacing: -0.01em; color: #12304a; }}
+.hello-aside {{ font-family: 'Source Serif 4', Georgia, serif; font-size: 21px; font-style: italic;
+    color: #9a7414; margin-top: .35rem; }}
+.hello-time {{ font-size: 13px; color: #6b7280; margin-top: .55rem; }}
+.cal-title {{ font-family: 'Source Serif 4', Georgia, serif; font-size: 21px; font-weight: 600; color: #12304a;
+    padding-bottom: .25rem; margin: 0 0 .6rem 0; border-bottom: 3px solid #d4a72c; display: inline-block; }}
+.cal-note {{ font-size: 12px; color: #6b7280; margin: .35rem 0 1.4rem 0; }}
+.cal-wrap {{ overflow-y: auto; border-radius: 8px; }}
+table.cal {{ border-collapse: separate; border-spacing: 0; width: 100%; font-size: 13px; color: #1b1f24; }}
+table.cal th {{ position: sticky; top: 0; z-index: 1; background: #e3b740; color: #12304a; font-weight: 700;
+    text-align: left; padding: 7px 10px; border: 0; }}
+table.cal td {{ padding: 6px 10px; border: 0; white-space: nowrap; }}
+table.cal tbody tr:nth-child(even) td {{ background: #fbf4e2; }}
+table.cal tbody tr:nth-child(odd) td {{ background: #ffffff; }}
+table.cal td.soon {{ color: #9a7414; font-weight: 600; }}
 @media (max-width: 1100px) {{ .cot-grid {{ grid-template-columns: 1fr; }} }}
 </style>
 """

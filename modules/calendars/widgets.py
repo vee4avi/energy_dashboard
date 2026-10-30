@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import html
 import json
 
 import pandas as pd
@@ -10,7 +11,6 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from modules.calendars import data_sources
-from shared import theme
 
 BOX_HEIGHT = 520  # px, every calendar box (scrolls inside)
 TV_SCRIPT = "https://s3.tradingview.com/external-embedding/embed-widget-events.js"
@@ -65,51 +65,72 @@ def when(date: dt.date, today: dt.date) -> str:
     return f"in {months} month{'s' if months != 1 else ''}"
 
 
-def _box(key: str, title: str):
-    """A bordered box with a coloured title strip; the CSS lives in theme.PAGE_CSS."""
-    box = st.container(key=f"calbox_{key}")
-    box.markdown(f"<div class='cal-title'>{title}</div>", unsafe_allow_html=True)
-    return box
+def _title(text: str) -> None:
+    st.markdown(f"<div class='cal-title'>{html.escape(text)}</div>", unsafe_allow_html=True)
+
+
+def _note(text: str) -> None:
+    st.markdown(f"<div class='cal-note'>{html.escape(text)}</div>", unsafe_allow_html=True)
+
+
+def table_html(frame: pd.DataFrame, height: int, soon_column: str = "When") -> str:
+    """A plain table that scrolls inside a fixed height, header pinned, rows banded.
+
+    One line of HTML (no blank lines), so Streamlit's Markdown leaves it alone. Rows due
+    within a week get the accent colour in the "When" column.
+    """
+    head = "".join(f"<th>{html.escape(str(c))}</th>" for c in frame.columns)
+    rows = []
+    for _, row in frame.iterrows():
+        cells = []
+        for column in frame.columns:
+            text = html.escape(str(row[column]))
+            soon = column == soon_column and (text in ("today", "tomorrow") or (text.endswith("days") and int(text.split()[1]) <= 7))
+            cells.append(f'<td class="soon">{text}</td>' if soon else f"<td>{text}</td>")
+        rows.append("<tr>" + "".join(cells) + "</tr>")
+    return (
+        f'<div class="cal-wrap" style="max-height:{height}px"><table class="cal"><thead><tr>{head}</tr></thead>'
+        f"<tbody>{''.join(rows)}</tbody></table></div>"
+    )
+
+
+TV_HEIGHT = 560  # the widget's own height; its credit line sits below it
 
 
 def macro_box() -> None:
-    with _box("macro", "Macro calendar"):
-        _embed(tradingview_html(list(TV_IMPORTANCE), list(TV_COUNTRIES), BOX_HEIGHT), BOX_HEIGHT + 24)
+    _title("Macro calendar")
+    _embed(tradingview_html(list(TV_IMPORTANCE), list(TV_COUNTRIES), TV_HEIGHT), TV_HEIGHT + 60)
 
 
 def _table(frame: pd.DataFrame) -> None:
-    st.dataframe(frame, hide_index=True, height=BOX_HEIGHT, **theme.wide())
+    st.markdown(table_html(frame, BOX_HEIGHT), unsafe_allow_html=True)
 
 
 def holidays_box(today: dt.date) -> None:
-    with _box("holidays", "Bank holidays"):
-        frame = data_sources.holidays_between(
-            today, today + dt.timedelta(days=365), list(data_sources.COUNTRIES)
-        )
-        if frame.empty:
-            st.caption("No bank holidays in the next 12 months.")
-            return
-        _table(pd.DataFrame({
-            "Date": [f"{d:%a %d %b %Y}" for d in frame["Date"]],
-            "Country": frame["Country"],
-            "Holiday": frame["Holiday"],
-            "When": [when(d, today) for d in frame["Date"]],
-        }))
-        st.caption("US, UK (England), Singapore and China. Exchange schedules can differ.")
+    _title("Bank holidays")
+    frame = data_sources.holidays_between(today, today + dt.timedelta(days=365), list(data_sources.COUNTRIES))
+    if frame.empty:
+        _note("No bank holidays in the next 12 months.")
+        return
+    _table(pd.DataFrame({
+        "Date": [f"{d:%a %d %b %Y}" for d in frame["Date"]],
+        "Country": frame["Country"],
+        "Holiday": frame["Holiday"],
+        "When": [when(d, today) for d in frame["Date"]],
+    }))
+    _note("US, UK (England), Singapore and China. Exchange schedules can differ.")
 
 
 def expiries_box(today: dt.date) -> None:
-    with _box("expiries", "Contract expiries"):
-        frame = data_sources.expiries_between(
-            today, today + dt.timedelta(days=3 * 365), data_sources.expiry_products()
-        )
-        if frame.empty:
-            st.caption("No expiries held; add months to the expiries file.")
-            return
-        _table(pd.DataFrame({
-            "Expiry": [f"{d:%a %d %b %Y}" for d in frame["Date"]],
-            "Product": frame["Product"],
-            "Contract": frame["Contract"],
-            "When": [when(d, today) for d in frame["Date"]],
-        }))
-        st.caption("Last trading days as published by ICE (Brent futures and Brent options).")
+    _title("Contract expiries")
+    frame = data_sources.expiries_between(today, today + dt.timedelta(days=3 * 365), data_sources.expiry_products())
+    if frame.empty:
+        _note("No expiries held; add months to the expiries file.")
+        return
+    _table(pd.DataFrame({
+        "Expiry": [f"{d:%a %d %b %Y}" for d in frame["Date"]],
+        "Product": frame["Product"],
+        "Contract": frame["Contract"],
+        "When": [when(d, today) for d in frame["Date"]],
+    }))
+    _note("Last trading days as published by ICE (Brent futures and Brent options).")

@@ -33,7 +33,7 @@ def greeting(now: dt.datetime) -> tuple[str, str]:
 
 
 def render(pages: dict[str, st.Page] | None = None) -> None:
-    """The greeting, then the calendars stacked in the left half of the page."""
+    """The greeting, then the macro calendar beside the bank holidays, then expiries."""
     now = dt.datetime.now(TIMEZONE)
     headline, aside = greeting(now)
     st.markdown(
@@ -44,8 +44,11 @@ def render(pages: dict[str, st.Page] | None = None) -> None:
         "</div>",
         unsafe_allow_html=True,
     )
-    left, _ = st.columns(2, gap="large")
-    with left:
+    macro, holidays = st.columns([5, 6], gap="large")
+    with macro:
         widgets.macro_box()
+    with holidays:
         widgets.holidays_box(now.date())
+    expiries, _ = st.columns([5, 6], gap="large")
+    with expiries:
         widgets.expiries_box(now.date())
