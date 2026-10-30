@@ -66,7 +66,7 @@ def _app():
     from streamlit.testing.v1 import AppTest
 
     os.chdir(ROOT)
-    return AppTest.from_file(str(ROOT / "app.py"), default_timeout=90)
+    return AppTest.from_file(str(ROOT / "tests" / "cftc_entry.py"), default_timeout=90)
 
 
 def test_panel_and_no_analysis_box() -> None:
