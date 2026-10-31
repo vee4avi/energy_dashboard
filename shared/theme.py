@@ -308,7 +308,7 @@ table.cot-hist td.flat {{ color: #8a919a; }}
 .cal-note {{ font-size: 12px; color: #6b7280; margin: .35rem 0 1.4rem 0; }}
 .cal-wrap {{ overflow: auto; border-radius: 8px; }}
 table.cal {{ border-collapse: separate; border-spacing: 0; width: 100%; font-size: 13px; color: #1b1f24; }}
-table.cal th {{ position: sticky; top: 0; z-index: 1; background: #b9c294; color: #2f3a22;
+table.cal th {{ position: sticky; top: 0; z-index: 1; background: #6f7d4a; color: #ffffff;  /* the stripe on the greeting panel */
     font-family: '{GREETING_FONT}', Georgia, serif; font-size: 14px; font-weight: 600;
     text-align: left; padding: 7px 10px; border: 0; }}
 table.cal td {{ padding: 6px 10px; border: 0; white-space: normal; vertical-align: top; }}
@@ -316,6 +316,7 @@ table.cal td:first-child, table.cal td:last-child {{ white-space: nowrap; }}
 table.cal tbody tr:nth-child(even) td {{ background: #f3f5ea; }}
 table.cal tbody tr:nth-child(odd) td {{ background: #ffffff; }}
 table.cal td.soon {{ color: #5f6d3a; font-weight: 700; }}
+.st-key-market_summary {{ margin-bottom: -1.1rem; }}
 @media (max-width: 1100px) {{ .cot-grid {{ grid-template-columns: 1fr; }} }}
 </style>
 """

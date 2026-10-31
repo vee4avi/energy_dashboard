@@ -14,7 +14,7 @@ MARKET_SUMMARY_CODE = r"""
 
 <tv-market-summary symbol-sectors='[{"sectionName":"Oils","symbols":["BLACKBULL:BRENT","BLACKBULL:WTI","CMCMARKETS:RBOBGASOLINE","FRED:GASDESW"]},{"sectionName":"$$$","symbols":["BITSTAMP:BTCUSD","FOREXCOM:XAUUSD","FX:XAGUSD","OANDA:EURUSD","OANDA:USDJPY","OANDA:USDSGD"]},{"sectionName":"Stocks","symbols":["NASDAQ:QNT","NYSE:CCJ","NASDAQ:MSFT","NASDAQ:GOOG","NYSE:LNG","NYSE:VG","NYSE:LLY","NASDAQ:GILD","NYSE:NVO","NASDAQ:CHRD"]}]' direction="horizontal" mode="custom"></tv-market-summary>
 """
-MARKET_SUMMARY_HEIGHT = 255  # px
+MARKET_SUMMARY_HEIGHT = 217  # px
 
 # Macro (economic) calendar. Empty = built-in version.
 MACRO_CALENDAR_CODE = r"""
