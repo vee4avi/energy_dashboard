@@ -11,7 +11,8 @@ importance levels). Change the heights if a widget looks cut off or has spare ro
 # Market summary (the strip above the calendars).
 MARKET_SUMMARY_CODE = r"""
 <script type="module" src="https://widgets.tradingview-widget.com/w/en/tv-market-summary.js"></script>
-<tv-market-summary></tv-market-summary>
+
+<tv-market-summary symbol-sectors='[{"sectionName":"Oils","symbols":["BLACKBULL:BRENT","BLACKBULL:WTI","CMCMARKETS:RBOBGASOLINE","FRED:GASDESW"]},{"sectionName":"$$$","symbols":["BITSTAMP:BTCUSD","FOREXCOM:XAUUSD","FX:XAGUSD","OANDA:EURUSD","OANDA:USDJPY","OANDA:USDSGD"]},{"sectionName":"Stocks","symbols":["NASDAQ:QNT","NYSE:CCJ","NASDAQ:MSFT","NASDAQ:GOOG","NYSE:LNG","NYSE:VG","NYSE:LLY","NASDAQ:GILD","NYSE:NVO","NASDAQ:CHRD"]}]' direction="horizontal" mode="custom"></tv-market-summary>
 """
 MARKET_SUMMARY_HEIGHT = 255  # px
 

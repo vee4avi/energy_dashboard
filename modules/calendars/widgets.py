@@ -143,4 +143,4 @@ def expiries_box(today: dt.date) -> None:
         "Contract": frame["Contract"],
         "When": [when(d, today) for d in frame["Date"]],
     }))
-    _note("Last trading days as published by ICE (Brent futures and Brent options).")
+    _note("Last trading days as published by ICE: " + ", ".join(data_sources.expiry_products()) + ".")

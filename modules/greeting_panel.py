@@ -15,7 +15,7 @@ from pathlib import Path
 
 from shared import theme
 
-PANEL_HEIGHT = 112  # px
+PANEL_HEIGHT = 188  # px
 # The clock digits: DSEG7 Classic, a seven-segment LED font like the clocks on a trading
 # floor (SIL Open Font Licence, see assets/DSEG-LICENSE.txt). It is 5 KB, so it is built
 # into the page rather than fetched.
@@ -78,7 +78,7 @@ html, body {{ margin: 0; padding: 0; background: transparent; }}
 .stamp {{ font-size: 13px; color: #5f6655; margin-top: .3rem; }}
 .clocks {{ display: flex; gap: .8rem; }}
 .clock {{ min-width: 172px; background: transparent; border: 1.5px solid #1b1f18;
-  border-radius: 10px; padding: .3rem 1rem .3rem 1rem; display: flex; flex-direction: column;
+  border-radius: 10px; padding: .55rem 1rem .5rem 1rem; display: flex; flex-direction: column;
   align-items: center; justify-content: center; text-align: center; }}
 .date {{ font-family: 'DSEG14', 'Courier New', monospace; font-size: 12.5px; letter-spacing: .14em;
   color: #3a4430; text-transform: uppercase; margin-bottom: .15rem; }}
