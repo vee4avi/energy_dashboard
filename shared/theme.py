@@ -316,7 +316,6 @@ table.cal td:first-child, table.cal td:last-child {{ white-space: nowrap; }}
 table.cal tbody tr:nth-child(even) td {{ background: #f3f5ea; }}
 table.cal tbody tr:nth-child(odd) td {{ background: #ffffff; }}
 table.cal td.soon {{ color: #5f6d3a; font-weight: 700; }}
-.st-key-market_summary {{ margin-bottom: -1.1rem; transform: translateY(-0.9rem); }}  /* nudged up; the tables stay put */
 @media (max-width: 1100px) {{ .cot-grid {{ grid-template-columns: 1fr; }} }}
 </style>
 """
