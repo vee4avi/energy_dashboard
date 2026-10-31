@@ -11,8 +11,8 @@ from modules import greeting_panel
 from modules.calendars import widgets
 
 TIMEZONE = ZoneInfo("Asia/Singapore")  # the greeting follows this clock, not the server's
-NAME = "trading junkie"
-BEACH = "you should be at a beach."
+NAME = "trading junkies"
+BEACH = "you should be at the beach."
 
 
 def greeting(now: dt.datetime) -> tuple[str, str]:

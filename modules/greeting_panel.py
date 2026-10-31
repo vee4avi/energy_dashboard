@@ -15,20 +15,26 @@ from pathlib import Path
 
 from shared import theme
 
-PANEL_HEIGHT = 186  # px
+PANEL_HEIGHT = 112  # px
 # The clock digits: DSEG7 Classic, a seven-segment LED font like the clocks on a trading
 # floor (SIL Open Font Licence, see assets/DSEG-LICENSE.txt). It is 5 KB, so it is built
 # into the page rather than fetched.
 DIGITS_FILE = Path(__file__).parent / "assets" / "DSEG7Classic-Bold.woff2"
 LED_COLOUR = "#1b1f18"  # the digits; e.g. red "#ff3b2f" or amber "#ffb000" for an LED look
+LETTERS_FILE = Path(__file__).parent / "assets" / "DSEG14Classic-Bold.woff2"  # fourteen-segment, for the date
+
+
+def _font_face(name: str, path: Path) -> str:
+    try:
+        data = base64.b64encode(path.read_bytes()).decode("ascii")
+    except OSError:
+        return ""
+    return f"@font-face {{ font-family: '{name}'; src: url(data:font/woff2;base64,{data}) format('woff2'); }}"
 
 
 def _digits_font_face() -> str:
-    try:
-        data = base64.b64encode(DIGITS_FILE.read_bytes()).decode("ascii")
-    except OSError:
-        return ""
-    return f"@font-face {{ font-family: 'DSEG7'; src: url(data:font/woff2;base64,{data}) format('woff2'); }}"
+    return _font_face("DSEG7", DIGITS_FILE) + "\n" + _font_face("DSEG14", LETTERS_FILE)
+
 
 # (label, IANA time zone, market shown under the clock, sessions in local time)
 CLOCKS = (
@@ -63,19 +69,20 @@ def panel_html(headline: str, aside: str, now: dt.datetime) -> str:
 {_digits_font_face()}
 html, body {{ margin: 0; padding: 0; background: transparent; }}
 .panel {{ box-sizing: border-box; height: {PANEL_HEIGHT - 6}px; display: flex; align-items: center;
-  justify-content: space-between; gap: 2rem; padding: 0 2rem 0 1.8rem; border-radius: 10px;
+  justify-content: space-between; gap: 2rem; padding: 0 1.6rem 0 1.6rem; border-radius: 10px;
   background: linear-gradient(120deg, #d9e1c6 0%, #cbd5b0 100%); border-left: 6px solid #6f7d4a;
   font-family: 'Source Sans 3', 'Segoe UI', sans-serif; }}
 .head {{ font-family: '{font}', Georgia, serif; font-size: 32px; font-weight: 500; color: #2f3a22;
   line-height: 1.2; letter-spacing: -0.01em; }}
-.aside {{ font-family: '{font}', Georgia, serif; font-size: 18px; font-style: italic; color: #4f5c33; margin-top: .4rem; }}
-.stamp {{ font-size: 13px; color: #5f6655; margin-top: .6rem; }}
+.aside {{ font-family: '{font}', Georgia, serif; font-size: 18px; font-style: italic; color: #4f5c33; margin-top: .2rem; }}
+.stamp {{ font-size: 13px; color: #5f6655; margin-top: .3rem; }}
 .clocks {{ display: flex; gap: .8rem; }}
-.clock {{ min-width: 172px; background: rgba(255,255,255,.55); border: 1px solid rgba(79,92,51,.25);
-  border-radius: 10px; padding: .6rem 1rem .55rem 1rem; display: flex; flex-direction: column;
+.clock {{ min-width: 172px; background: transparent; border: 1.5px solid #1b1f18;
+  border-radius: 10px; padding: .3rem 1rem .3rem 1rem; display: flex; flex-direction: column;
   align-items: center; justify-content: center; text-align: center; }}
-.date {{ font-size: 12px; color: #5f6655; }}
-.led {{ margin: .2rem 0 .3rem 0; white-space: nowrap; }}
+.date {{ font-family: 'DSEG14', 'Courier New', monospace; font-size: 12.5px; letter-spacing: .14em;
+  color: #3a4430; text-transform: uppercase; margin-bottom: .15rem; }}
+.led {{ margin: .05rem 0 .1rem 0; white-space: nowrap; }}
 /* Each character sits in its own cell over a faint "8" (its unlit segments), so the digits
    line up like a real seven-segment display whatever the time. */
 .cell {{ position: relative; display: inline-block; font-family: 'DSEG7', 'Courier New', monospace;
@@ -84,7 +91,7 @@ html, body {{ margin: 0; padding: 0; background: transparent; }}
 .cell .v {{ position: absolute; right: 0; top: 0; color: {LED_COLOUR}; }}
 .city {{ font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #4f5c33; }}
 .badge:empty {{ display: none; }}
-.badge {{ margin-top: .2rem; font-size: 12px; font-weight: 700; color: #000; }}
+.badge {{ margin-top: .05rem; font-size: 12px; font-weight: 700; color: #000; }}
 @media (max-width: 900px) {{ .clocks {{ display: none; }} }}
 </style></head><body>
 <div class="panel">
@@ -118,7 +125,7 @@ function tick() {{
     el.querySelector('.time').innerHTML = [...text].map(c =>
       '<span class="cell"><span class="g">' + (c === ':' ? ':' : '8') + '</span><span class="v">' + c + '</span></span>'
     ).join('');
-    el.querySelector('.date').textContent = p.weekday + ' ' + p.day + ' ' + p.month;
+    el.querySelector('.date').textContent = (p.weekday + ' ' + p.day + ' ' + p.month).toUpperCase();
     const market = el.dataset.market;
     if (market) {{
       const [text] = status(market, p, p.year + '-' + MONTHS[p.month] + '-' + p.day);

@@ -26,15 +26,15 @@ def at(day: str, hour: int) -> dt.datetime:
 
 def test_greeting() -> None:
     day = "2026-10-28"  # a Wednesday
-    assert home.greeting(at(day, 2)) == ("Good evening, trading junkie.", "It's past midnight — why on earth are you awake? 🦉")
-    assert home.greeting(at(day, 6)) == ("Good morning, trading junkie.", "It's too early right now — you should be in bed. 🛏️")
+    assert home.greeting(at(day, 2)) == ("Good evening, trading junkies.", "It's past midnight — why on earth are you awake? 🦉")
+    assert home.greeting(at(day, 6)) == ("Good morning, trading junkies.", "It's too early right now — you should be in bed. 🛏️")
     assert home.greeting(at(day, 11))[1].endswith("in bed. 🛏️")
-    assert home.greeting(at(day, 12)) == ("Good afternoon, trading junkie.", "It's midday — you should be at a beach. 🏖️")
-    assert home.greeting(at(day, 16)) == ("Good afternoon, trading junkie.", "It's late — you should be getting a drink. 🍹")
-    assert home.greeting(at(day, 18)) == ("Good evening, trading junkie.", "It's late — go grab a bottle of wine. 🍷")
+    assert home.greeting(at(day, 12)) == ("Good afternoon, trading junkies.", "It's midday — you should be at the beach. 🏖️")
+    assert home.greeting(at(day, 16)) == ("Good afternoon, trading junkies.", "It's late — you should be getting a drink. 🍹")
+    assert home.greeting(at(day, 18)) == ("Good evening, trading junkies.", "It's late — go grab a bottle of wine. 🍷")
     assert home.greeting(at(day, 23))[1].endswith("bottle of wine. 🍷")
     for hour in (2, 9, 14, 20):  # Saturday, any time
-        assert home.greeting(at("2026-10-31", hour))[1] == "It's the weekend — you should be at a beach. 🏖️"
+        assert home.greeting(at("2026-10-31", hour))[1] == "It's the weekend — you should be at the beach. 🏖️"
     print("greeting: ok")
 
 
@@ -91,14 +91,15 @@ def test_greeting_panel() -> None:
     from modules import greeting_panel
 
     now = at("2026-10-28", 15)
-    markup = greeting_panel.panel_html("Good afternoon, trading junkie.", "It's midday <b>", now)
-    assert "Good afternoon, trading junkie." in markup and "It&#x27;s midday &lt;b&gt;" in markup, "escaped"
+    markup = greeting_panel.panel_html("Good afternoon, trading junkies.", "It's midday <b>", now)
+    assert "Good afternoon, trading junkies." in markup and "It&#x27;s midday &lt;b&gt;" in markup, "escaped"
     for zone in ("Asia/Singapore", "Europe/London", "America/New_York"):
         assert f'data-tz="{zone}"' in markup, zone
     assert 'data-market="NASDAQ"' in markup and '"open": "09:30"' in markup
     assert '"2026-11-26"' in markup, "NYSE holidays (Thanksgiving) feed the open/closed badge"
     assert "setInterval(tick, 1000)" in markup
     assert "font/woff2;base64," in markup and 'class="cell"' in markup, "LED font built in, digit cells"
+    assert markup.count("font/woff2;base64,") == 2 and "toUpperCase()" in markup, "fourteen-segment date, in caps"
     print("greeting panel: ok")
 
 
@@ -118,7 +119,8 @@ def test_tradingview_html() -> None:
     assert 'src="https://s3.tradingview.com/external-embedding/embed-widget-events.js"' in markup
     assert '"importanceFilter": "1"' in markup and '"countryFilter": "us,cn"' in markup
     assert '"height": "300"' in markup and "TradingView" in markup, "fixed height; attribution kept"
-    assert "tv-market-summary" in widgets.MARKET_SUMMARY_EMBED
+    from modules.calendars import tradingview_code
+    assert "tv-market-summary" in tradingview_code.MARKET_SUMMARY_CODE
     print("tradingview: ok")
 
 
