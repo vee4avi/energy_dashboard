@@ -87,7 +87,7 @@ html, body {{ margin: 0; padding: 0; background: transparent; }}
    line up like a real seven-segment display whatever the time. */
 .cell {{ position: relative; display: inline-block; font-family: 'DSEG7', 'Courier New', monospace;
   font-size: 24px; line-height: 1.2; }}
-.cell .g {{ color: {LED_COLOUR}; opacity: .08; }}
+.cell .g {{ visibility: hidden; }}  /* keeps each digit in a fixed-width cell; unlit segments not shown */
 .cell .v {{ position: absolute; right: 0; top: 0; color: {LED_COLOUR}; }}
 .city {{ font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #4f5c33; }}
 .badge:empty {{ display: none; }}
