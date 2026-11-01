@@ -20,6 +20,7 @@ class Port:
 PORTS: tuple[Port, ...] = (
     Port("US Gulf Coast", "Houston / Galveston", 29.30, -94.65),
     Port("US Gulf Coast", "Corpus Christi", 27.80, -97.00),
+    Port("US East Coast", "New York Harbor", 40.45, -73.85),
     Port("ARA", "Rotterdam", 51.98, 3.95),
     Port("ARA", "Antwerp (Scheldt mouth)", 51.45, 3.45),
     Port("ARA", "Amsterdam (IJmuiden)", 52.47, 4.45),

@@ -79,7 +79,8 @@ def test_ports() -> None:
     names = [p.name for p in PORTS]
     assert len(names) == len(set(names))
     regions = {p.region for p in PORTS}
-    assert {"US Gulf Coast", "ARA", "Middle East", "China", "India", "South Korea", "Japan"} <= regions
+    assert {"US Gulf Coast", "US East Coast", "ARA", "Middle East", "China", "India", "South Korea", "Japan"} <= regions
+    assert "New York Harbor" in names
     assert all(-90 <= p.lat <= 90 and -180 <= p.lon <= 180 for p in PORTS)
     print("ports: ok")
 

@@ -48,7 +48,7 @@ def render(pages: dict[str, st.Page] | None = None) -> None:
     headline, aside = greeting(now)
     widgets._embed(greeting_panel.panel_html(headline, aside, now), greeting_panel.PANEL_HEIGHT)
     widgets.market_summary_box()
-    macro, holidays, expiries = st.columns(3, gap="medium")
+    macro, holidays, expiries = st.columns([9, 11, 10], gap="medium")
     with macro:
         widgets.macro_box()
     with holidays:

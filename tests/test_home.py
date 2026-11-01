@@ -85,12 +85,13 @@ def test_expiries_match_ice_and_its_rule() -> None:
         assert gap == 3 or (gap == 4 and thanksgiving.month == 11 and thanksgiving.weekday() == 3), (month, gap)
     assert data_sources.last_listed("Brent options") >= dt.date(2032, 10, 1)
     assert set(data_sources.expiry_products()) == {
-        "Brent futures", "Brent options", "WTI futures", "RBOB futures", "Gasoil futures"}
+        "Brent futures", "Brent options", "WTI futures", "WTI options", "RBOB futures", "Gasoil futures"}
     later = data_sources.expiries_between(dt.date(2026, 11, 1), dt.date(2026, 11, 30), data_sources.expiry_products())
     found = {(r.Product, r.Contract): r.Date for r in later.itertuples()}
     assert found[("WTI futures", "Dec26")] == dt.date(2026, 11, 19)
     assert found[("RBOB futures", "Dec26")] == dt.date(2026, 11, 27)
     assert found[("Gasoil futures", "Nov26")] == dt.date(2026, 11, 12)
+    assert found[("WTI options", "Dec26")] == dt.date(2026, 11, 17), "two business days before ICE WTI futures"
     print("expiries: ok")
 
 
@@ -146,9 +147,11 @@ def test_home_page_renders() -> None:
     assert "<th>Date</th><th>Country</th><th>Holiday</th><th>When</th>" in tables[0]
     for country in ("US", "UK", "Singapore", "China"):
         assert f"<td>{country}</td>" in tables[0], country
-    for product in ("Brent futures", "Brent options", "WTI futures", "RBOB futures", "Gasoil futures"):
+    for product in ("Brent futures", "Brent options", "WTI futures", "WTI options", "RBOB futures", "Gasoil futures"):
         assert product in tables[1], product
     assert all("\n" not in t for t in tables), "one line, so Markdown leaves it alone"
+    import re
+    assert re.search(r"<td>(Mon|Tue|Wed|Thu|Fri|Sat|Sun) \d\d [A-Z][a-z]{2} \d\d</td>", tables[1]), "weekday shown"
     assert "Live" not in text, "no section cards on the home page"
     print("home page: ok")
 
