@@ -98,7 +98,7 @@ TV_HEIGHT = BOX_HEIGHT + 40  # the widget's own height; its credit line sits bel
 
 
 def market_summary_box() -> None:
-    with st.container(key="market_summary"):  # pulled closer to the tables in theme.PAGE_CSS
+    with st.container(key="market_summary"):
         _title("Market summary")
         _embed(f'<div style="font-family:sans-serif">{tradingview_code.MARKET_SUMMARY_CODE}</div>',
                tradingview_code.MARKET_SUMMARY_HEIGHT)

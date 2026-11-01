@@ -30,7 +30,7 @@ def test_registry() -> None:
 
     keys = [m.key for m in MODULES]
     assert len(keys) == len(set(keys)), "section keys are url paths and must be unique"
-    assert [m.key for m in MODULES if m.live] == ["cftc"]
+    assert [m.key for m in MODULES if m.live] == ["cftc", "weather"]
     assert all(callable(m.render) for m in MODULES)
     print("registry: ok")
 

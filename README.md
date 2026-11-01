@@ -7,7 +7,9 @@ A Streamlit app with a home page and a page for each section.
   (US, UK, Singapore, China) and contract expiries (Brent futures and options, from ICE).
 - **CFTC positioning:** CFTC and ICE Commitments of Traders for petroleum, the desk
   commentary and EIA weekly stocks.
-- **Weather & sea state:** coming soon.
+- **Weather & sea state:** a clickable map of key ports (US Gulf, ARA, Middle East, China, India,
+  South Korea, Japan) with wind, waves, swell and visibility from Open-Meteo, flagged against
+  thresholds you set in `modules/weather/ports.py`.
 
 ```
 app.py                  page setup, access code, menu
@@ -16,7 +18,7 @@ modules/
   home.py               the home page and the greeting wording
   calendars/            the home-page calendars; data/expiries.json holds the expiry dates
   cftc/                 CFTC positioning (see modules/cftc/README.md)
-  weather/              placeholder
+  weather/              ports and thresholds (ports.py), Open-Meteo forecasts, the map page
 shared/                 theme, tables, commentary cards, state, secrets, access code
 commentary/             the bot's weekly commentary files
 ice_data/               optional ICE history files

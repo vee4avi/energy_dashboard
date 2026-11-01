@@ -32,6 +32,6 @@ MODULES: tuple[Module, ...] = (
     Module(
         "weather", "Weather & sea state", "🌊",
         "Conditions in key coastal shipping regions that can hold up physical cargo.",
-        weather_page.render,
+        weather_page.render, live=True,
     ),
 )
